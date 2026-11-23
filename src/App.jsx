@@ -10,6 +10,7 @@ import { Toasts, DemoControls, Guided } from './components/Shell.jsx'
 
 import { useEffect } from 'react'
 import './theme.js'
+import Backdrop from './components/Backdrop.jsx'
 
 export default function App() {
   useEffect(() => {
@@ -36,5 +37,5 @@ export default function App() {
   else if (area === 'systems') page = <Systems />
   else if (area === 'credits') page = <Credits />
   else page = <Landing />
-  return <><div className="ambient" aria-hidden="true"><i /><i /><i /><i /></div>{page}<Toasts /><Guided /><DemoControls /></>
+  return <><Backdrop />{page}<Toasts /><Guided /><DemoControls /></>
 }

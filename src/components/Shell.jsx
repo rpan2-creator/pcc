@@ -10,11 +10,17 @@ import { Sun, Moon } from 'lucide-react'
 
 export function Logo({ size = 30 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <defs><radialGradient id="lg" cx="30%" cy="25%" r="90%"><stop offset="0" stopColor="#FFFFFF" /><stop offset=".5" stopColor="#DADDE2" /><stop offset="1" stopColor="#7A808A" /></radialGradient></defs>
-      <rect width="32" height="32" rx="9" fill="url(#lg)" />
-      <circle cx="16" cy="16" r="4.2" fill="#15171C" />
-      <circle cx="16" cy="16" r="9" fill="none" stroke="#15171C" strokeWidth="2" strokeDasharray="4 3.2" />
+    <svg className="logo" width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
+      <defs>
+        <linearGradient id="lgTile" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FFFFFF" /><stop offset=".45" stopColor="#E3E6EA" /><stop offset=".7" stopColor="#B4BAC2" /><stop offset="1" stopColor="#EEF0F3" /></linearGradient>
+        <linearGradient id="lgEdge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FFFFFF" /><stop offset=".5" stopColor="#FFFFFF" stopOpacity=".2" /><stop offset="1" stopColor="#FFFFFF" stopOpacity=".9" /></linearGradient>
+      </defs>
+      <rect x=".5" y=".5" width="31" height="31" rx="10" fill="url(#lgTile)" stroke="url(#lgEdge)" />
+      <path d="M5 8.5 C 10 3.5, 22 3.5, 27 8.5" fill="none" stroke="#fff" strokeOpacity=".95" strokeWidth="1.3" strokeLinecap="round" />
+      <g fill="none" stroke="#15171C" strokeWidth="1.7">
+        <circle cx="16" cy="12.6" r="5.8" /><circle cx="12.3" cy="18.9" r="5.8" /><circle cx="19.7" cy="18.9" r="5.8" />
+      </g>
+      <circle cx="16" cy="16.8" r="2.3" fill="#15171C" />
     </svg>
   )
 }
