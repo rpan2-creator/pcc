@@ -1,7 +1,5 @@
 name: Fetch photos
 on:
-  push:
-    paths: ['scripts/fetch-photos.mjs', 'src/data/photos.js', '.github/workflows/photos.yml']
   workflow_dispatch:
 permissions:
   contents: write

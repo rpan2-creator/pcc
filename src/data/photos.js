@@ -1,7 +1,10 @@
 // Real photos from Wikimedia Commons, loaded from their servers.
 // Each entry keeps the author and licence so the credits page can show them.
-const T = p => `https://thumb.wikimedia.org/wikipedia/commons/thumb/${p}`
-const U = p => `https://upload.wikimedia.org/wikipedia/commons/${p}`
+import MAP from './photo-map.json'
+// Copies are served from /photos (fetched by .github/workflows/photos.yml); the original URL is the fallback.
+const local = u => MAP[u] || u
+const T = p => local(`https://thumb.wikimedia.org/wikipedia/commons/thumb/${p}`)
+const U = p => local(`https://upload.wikimedia.org/wikipedia/commons/${p}`)
 
 export const PHOTOS = {
   pothole: [
