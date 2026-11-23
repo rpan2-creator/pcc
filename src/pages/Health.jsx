@@ -56,7 +56,7 @@ export default function Health({ s, base = '/ops/requests/', title = 'City healt
           const cats = Object.entries(CATEGORIES).filter(([, c]) => c.domain === d.key)
           return (
             <div key={d.key} className="card spot lift rowin" style={{ padding: 16, animationDelay: `${i * 50}ms` }}>
-              <div className="row" style={{ gap: 8 }}><i style={{ width: 10, height: 10, borderRadius: 3, background: d.color }} /><b className="small" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={d.label}>{d.label}</b><b className="mono" style={{ fontSize: 22, color: healthColor(d.score), letterSpacing: '-.03em' }}><Num value={d.score} /></b></div>
+              <div className="row" style={{ gap: 8 }}><b className="small" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={d.label}>{d.label}</b><b className="mono" style={{ fontSize: 22, color: healthColor(d.score), letterSpacing: '-.03em' }}><Num value={d.score} /></b></div>
               <div className="hbar" style={{ margin: '12px 0' }}><i style={{ width: `${d.score}%`, background: healthColor(d.score) }} /></div>
               <div className="tiny muted"><b style={{ color: 'var(--tx)' }}>{d.open}</b> open · <b style={{ color: d.overdue ? 'var(--red)' : 'var(--tx)' }}>{d.overdue}</b> late · <b style={{ color: 'var(--tx)' }}>{d.onTime}%</b> on time</div>
               <div className="row" style={{ gap: 4, marginTop: 12, flexWrap: 'wrap' }}>{cats.map(([k]) => <span key={k} title={CATEGORIES[k].label}><CatIcon c={k} size={22} /></span>)}</div>
@@ -92,7 +92,7 @@ export default function Health({ s, base = '/ops/requests/', title = 'City healt
             {BUDGET.map(b => (
               <div key={b.key} style={{ padding: '7px 0' }}>
                 <div className="row small" style={{ marginBottom: 5 }}><span style={{ flex: 1, fontWeight: 600 }}>{DOMAINS[b.key].label}</span><span className="mono dim">${b.spent.toFixed(1)}M <span className="muted">/ {b.budget.toFixed(1)}</span></span></div>
-                <div className="hbar"><i style={{ width: `${(b.spent / b.budget) * 100}%`, background: DOMAINS[b.key].color }} /></div>
+                <div className="hbar"><i style={{ width: `${(b.spent / b.budget) * 100}%`, background: 'var(--tx2)' }} /></div>
               </div>
             ))}
             <div className="tiny muted" style={{ marginTop: 8 }}>Spend to date against the annual budget for each service area. Demo figures.</div>

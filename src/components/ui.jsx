@@ -15,7 +15,7 @@ export const ROLES = {
 export function Avatar({ role, size = 30 }) {
   const r = ROLES[role]
   const I = r.icon
-  return <span className="avatar" style={{ background: r.color, width: size, height: size, borderRadius: size * 0.3 }}><I size={Math.round(size * 0.5)} strokeWidth={2} /></span>
+  return <span className="avatar" style={{ width: size, height: size }}><I size={Math.round(size * 0.5)} strokeWidth={2} /></span>
 }
 export function AgentMark({ size = 'md', busy }) {
   return <span className={`agentmark ${size === 'sm' ? 'sm' : ''} ${busy ? 'busy' : ''}`}><Sparkles size={size === 'sm' ? 12 : 15} strokeWidth={2.4} /></span>
@@ -25,7 +25,7 @@ export const CAT_ICON = { pothole: Construction, sidewalk: Footprints, sign: Sig
 export function CatIcon({ c, size = 34, radius }) {
   const I = CAT_ICON[c] || Wrench
   const col = CATEGORIES[c]?.color || '#55556A'
-  return <span className="caticon" style={{ width: size, height: size, borderRadius: radius ?? size * 0.3, background: `linear-gradient(140deg, ${col}, ${col}B3)` }}><I size={Math.round(size * 0.52)} color="#fff" strokeWidth={2.2} /></span>
+  return <span className="caticon" style={{ width: size, height: size, borderRadius: radius ?? size * 0.32 }}><I size={Math.round(size * 0.5)} strokeWidth={2} /></span>
 }
 export function Cat({ c, label = true, size = 22 }) {
   return <span className="row" style={{ gap: 8 }}><CatIcon c={c} size={size} radius={7} />{label && <span>{CATEGORIES[c].label}</span>}</span>
@@ -33,7 +33,7 @@ export function Cat({ c, label = true, size = 22 }) {
 
 export const LEVEL = { high: 'High', medium: 'Medium', low: 'Low' }
 export function Priority({ p, showScore = true }) {
-  const c = p.level === 'high' ? 'var(--red)' : p.level === 'medium' ? 'var(--amber)' : 'var(--green)'
+  const c = p.level === 'high' ? 'var(--red)' : p.level === 'medium' ? 'var(--amber)' : 'var(--tx3)'
   return (
     <span className="row" style={{ gap: 8 }}>
       <span className={`pill ${p.level}`}><span className="dot" />{LEVEL[p.level]}{p.overridden ? ' · set by hand' : ''}</span>
@@ -153,7 +153,7 @@ export function Num({ value, decimals = 0, duration = 900 }) {
   return <>{Number(shown).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}</>
 }
 
-export const healthColor = v => v >= 80 ? 'var(--green)' : v >= 65 ? 'var(--mint)' : v >= 50 ? 'var(--amber)' : 'var(--red)'
+export const healthColor = v => v >= 65 ? 'var(--tx)' : v >= 50 ? 'var(--amber)' : 'var(--red)'
 export function HealthRing({ value, size = 160, stroke = 12, label = 'City health', sub }) {
   const r = (size - stroke) / 2, c = 2 * Math.PI * r
   const [v, setV] = useState(0)
@@ -162,7 +162,7 @@ export function HealthRing({ value, size = 160, stroke = 12, label = 'City healt
     <div className="ring-wrap" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(var(--ink), .08)" strokeWidth={stroke} />
-        <circle className="ringarc" cx={size / 2} cy={size / 2} r={r} fill="none" stroke={healthColor(value)} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - v / 100)} style={{ filter: `drop-shadow(0 0 8px ${healthColor(value)})` }} />
+        <circle className="ringarc" cx={size / 2} cy={size / 2} r={r} fill="none" stroke={healthColor(value)} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - v / 100)} />
       </svg>
       <div className="rv"><b style={{ fontSize: size * 0.24 }}><Num value={value} /></b><span>{label}</span>{sub && <span style={{ display: 'block' }}>{sub}</span>}</div>
     </div>

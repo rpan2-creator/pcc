@@ -152,7 +152,7 @@ export default function Landing() {
         <div className="domains">
           {Object.entries(DOMAINS).map(([k, d]) => (
             <div key={k} className="card dom spot lift">
-              <div className="dh"><i style={{ background: d.color, boxShadow: `0 0 12px ${d.color}` }} /><b>{d.label}</b></div>
+              <div className="dh"><b>{d.label}</b></div>
               <div className="cats">{Object.entries(CATEGORIES).filter(([, c]) => c.domain === k).map(([ck, c]) => <span key={ck}><CatIcon c={ck} size={22} />{c.label}</span>)}</div>
             </div>
           ))}

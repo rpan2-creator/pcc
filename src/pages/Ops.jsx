@@ -77,22 +77,18 @@ function Command({ s }) {
         <Kpi icon={Bot} l="Handled by AI alone" v={k.autoPct} suffix="%" d={`${s.stats.merged} duplicates merged`} agent />
         <Kpi icon={Users} l="Staff hours saved" v={k.hours} d="sorting, routing, replying" agent />
       </div>
-      <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.75fr) minmax(300px, 1fr)', alignItems: 'start' }}>
-        <div className="grid">
-        <div className="card" style={{ overflow: 'hidden' }}>
+      <div className="card" style={{ overflow: 'hidden', marginBottom: 14 }}>
           <div className="cardhead"><h3>Live city map</h3><span className="sub"><Num value={shown.length} /> open</span></div>
           <div className="row" style={{ gap: 6, padding: '10px 14px 0', overflowX: 'auto', scrollbarWidth: 'none' }}>
             {[['all', 'All', null]].concat(Object.entries(DOMAINS).map(([k, d]) => [k, d.label, d.color])).map(([k2, l, c]) => (
-              <button key={k2} className="chip" style={{ border: 0, cursor: 'pointer', whiteSpace: 'nowrap', flex: 'none', ...(dom === k2 ? { background: 'var(--tx)', color: 'var(--bg)' } : null) }} onClick={() => setDom(k2)}>{c && <i style={{ width: 7, height: 7, borderRadius: 2, background: c }} />}{l}</button>
+              <button key={k2} className="chip" style={{ border: 0, cursor: 'pointer', whiteSpace: 'nowrap', flex: 'none', ...(dom === k2 ? { background: 'var(--tx)', color: 'var(--bg)' } : null) }} onClick={() => setDom(k2)}>{l}</button>
             ))}
           </div>
-          <div style={{ padding: 10 }}><CityMap requests={shown} onSelect={id => navigate(`/ops/requests/${id}`)} now={s.now} /></div>
+          <div style={{ padding: 10 }}><CityMap requests={shown} onSelect={id => navigate(`/ops/requests/${id}`)} now={s.now} height={460} /></div>
         </div>
-        <DeptLoad s={s} />
-        </div>
-        <div className="grid">
-          <Link to="/ops/health" className="card spot lift" style={{ padding: 18, display: 'flex', gap: 18, alignItems: 'center' }}>
-            <HealthRing value={h.index} size={116} stroke={10} label="City health" />
+      <div className="grid" style={{ gridTemplateColumns: 'minmax(260px, .9fr) minmax(0, 1.1fr) minmax(0, 1.1fr)', alignItems: 'start' }}>
+          <Link to="/ops/health" className="card spot lift" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'stretch' }}>
+            <div style={{ display: 'grid', placeItems: 'center' }}><HealthRing value={h.index} size={140} stroke={11} label="City health" /></div>
             <div style={{ flex: 1, minWidth: 0 }}>
               {h.domains.slice().sort((a, b) => a.score - b.score).slice(0, 4).map(d => (
                 <div key={d.key} style={{ marginBottom: 9 }}>
@@ -110,7 +106,7 @@ function Command({ s }) {
             {review.map(q => <DecisionRow key={q.id} icon={<Sparkles size={14} />} title={q.reviewNote} sub={`${q.id} · AI confidence ${Math.round(q.confidence * 100)}%`} to="/ops/decisions" />)}
             {!nDec && <div className="empty small"><CheckCircle2 size={22} color="var(--green)" /><div style={{ marginTop: 8 }}>Nothing waiting. The AI is handling the rest.</div></div>}
           </div>
-        </div>
+        <DeptLoad s={s} />
       </div>
       <div className="card" style={{ marginTop: 14 }}>
         <div className="cardhead"><h3>Most urgent right now</h3><span className="sub">ranked by the AI using your priority settings</span><span className="right"><Link to="/ops/requests" className="btn sm">All requests</Link></span></div>
@@ -132,7 +128,7 @@ function DeptLoad({ s }) {
   return (
     <div className="card">
       <div className="cardhead"><h3>Workload by department</h3><span className="sub">open requests · crews free</span></div>
-      <div style={{ padding: '8px 18px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 28 }}>
+      <div style={{ padding: '6px 18px 14px' }}>
         {rows.map(r => (
           <div key={r.k} style={{ padding: '8px 0' }}>
             <div className="row small" style={{ marginBottom: 6, gap: 8 }}><b style={{ flex: 1, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.d.name}</b><span className="mono" style={{ fontWeight: 700 }}>{r.open}</span></div>
@@ -322,7 +318,7 @@ function Requests({ s }) {
       <div className="pagehead"><div><div className="eyebrow"><ListChecks size={13} />All requests</div><h1>Every problem residents reported</h1><p><Num value={rows.length} /> shown, most urgent first.</p></div></div>
       <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
         <button className={`chip`} style={{ border: 0, cursor: 'pointer', ...(f.domain === 'all' ? { background: 'var(--tx)', color: 'var(--bg)' } : null) }} onClick={() => set('domain', 'all')}>All types</button>
-        {Object.entries(DOMAINS).map(([k, d]) => <button key={k} className="chip" style={{ border: 0, cursor: 'pointer', ...(f.domain === k ? { background: 'var(--tx)', color: 'var(--bg)' } : null) }} onClick={() => set('domain', k)}><i style={{ width: 8, height: 8, borderRadius: 3, background: d.color }} />{d.label}</button>)}
+        {Object.entries(DOMAINS).map(([k, d]) => <button key={k} className="chip" style={{ border: 0, cursor: 'pointer', ...(f.domain === k ? { background: 'var(--tx)', color: 'var(--bg)' } : null) }} onClick={() => set('domain', k)}>{d.label}</button>)}
       </div>
       <div className="card">
         <div className="cardhead" style={{ gap: 8, flexWrap: 'wrap' }}>

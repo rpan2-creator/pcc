@@ -82,13 +82,13 @@ export const PARKS = [
 ]
 
 export const DOMAINS = {
-  streets: { label: 'Streets & sidewalks', color: '#F59E66' },
-  traffic: { label: 'Traffic & lighting', color: '#FBBF24' },
-  water: { label: 'Water & drainage', color: '#5AB4F5' },
-  clean: { label: 'Trash & cleanliness', color: '#A3A87A' },
-  parks: { label: 'Parks & trees', color: '#5FD39B' },
-  housing: { label: 'Buildings & neighborhood', color: '#C59AF0' },
-  winter: { label: 'Snow & ice', color: '#9CC9F5' },
+  streets: { label: 'Streets & sidewalks', color: 'var(--tx3)' },
+  traffic: { label: 'Traffic & lighting', color: 'var(--tx3)' },
+  water: { label: 'Water & drainage', color: 'var(--tx3)' },
+  clean: { label: 'Trash & cleanliness', color: 'var(--tx3)' },
+  parks: { label: 'Parks & trees', color: 'var(--tx3)' },
+  housing: { label: 'Buildings & neighborhood', color: 'var(--tx3)' },
+  winter: { label: 'Snow & ice', color: 'var(--tx3)' },
 }
 
 // target = days the city commits to (shown to residents as the service target)

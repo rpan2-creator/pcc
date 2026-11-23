@@ -22,7 +22,7 @@ const STEPS = [
 ]
 const STEP_IX = { review: 0, new: 0, accepted: 1, scheduled: 2, in_progress: 3, resolved: 4, closed: 5, merged: 0 }
 const RES_STATUS = { review: 'Received', new: 'Received', accepted: 'Accepted', scheduled: 'Scheduled', in_progress: 'Crew working', resolved: 'Fixed? Confirm', closed: 'Fixed', merged: 'Merged' }
-const RES_COLOR = { review: '#7A857F', new: '#7A857F', accepted: '#1F6FD1', scheduled: '#1F6FD1', in_progress: '#C07A12', resolved: '#2E9B68', closed: '#2E9B68' }
+const RES_COLOR = { review: '#7A857F', new: '#7A857F', accepted: '#15171C', scheduled: '#15171C', in_progress: '#C07A12', resolved: '#2E9B68', closed: '#2E9B68' }
 
 const KEYWORDS = [
   [/pothole|hole in the road|crater/i, 'pothole'], [/sidewalk|curb|trip/i, 'sidewalk'], [/stop sign|sign (is )?(down|missing|bent)|street sign/i, 'sign'],
@@ -49,7 +49,7 @@ export default function Resident({ sub, id }) {
       <div className="resbg">
         <div className="resgrid">
           <aside className="resside">
-            <div className="eyebrow" style={{ color: 'var(--blue)' }}>Resident app · Riverton 311</div>
+            <div className="eyebrow">Resident app · Riverton 311</div>
             <h2>One place to report any city problem, and see it get fixed</h2>
             <p>Potholes, broken lights, missed trash, no heat, flooding, noise. Residents report in a sentence and a photo, see what neighbors already reported, vote on what matters, and get real time estimates from the same AI that coordinates city staff.</p>
             <div className="col" style={{ gap: 8, marginTop: 18 }}>
@@ -115,7 +115,7 @@ function Vote({ q, s }) {
   return (
     <div className="vote" onClick={e => e.stopPropagation()}>
       <button className={`up ${up ? 'on' : ''}`} aria-label="Upvote: this matters to me" onClick={() => upvote(q.id)}><ChevronUp size={17} strokeWidth={2.6} /></button>
-      <b key={net} className="bump" style={{ color: up ? '#1F6FD1' : down ? '#C4462C' : '#132019' }}>{net}</b>
+      <b key={net} className="bump" style={{ color: up ? '#15171C' : down ? '#C4462C' : '#15171C' }}>{net}</b>
       <button className={`down ${down ? 'on' : ''}`} aria-label="Downvote: not a real problem" onClick={() => downvote(q.id)}><ChevronDown size={17} strokeWidth={2.6} /></button>
     </div>
   )
@@ -158,7 +158,7 @@ function Home({ s }) {
         </div>
         <div className="fchips">
           <button className={`fchip ${dom === 'all' ? 'on' : ''}`} onClick={() => setDom('all')}>All</button>
-          {Object.entries(DOMAINS).map(([k, d]) => <button key={k} className={`fchip ${dom === k ? 'on' : ''}`} onClick={() => setDom(k)}><i style={{ width: 7, height: 7, borderRadius: 2, background: d.color }} />{d.label.split(' & ')[0]}</button>)}
+          {Object.entries(DOMAINS).map(([k, d]) => <button key={k} className={`fchip ${dom === k ? 'on' : ''}`} onClick={() => setDom(k)}>{d.label.split(' & ')[0]}</button>)}
         </div>
         <div className="row" style={{ margin: '4px 4px 8px' }}><b style={{ fontSize: 14 }}>Already reported nearby</b><span className="spacer" /><span className="tiny muted">{near.length} open</span></div>
         <div className="tiny muted" style={{ margin: '-4px 4px 10px', lineHeight: 1.4 }}>Same problem? Vote it up instead of reporting again. Votes help the city decide what comes first.</div>
@@ -206,7 +206,7 @@ function Report({ s }) {
         </div>
         <div className="lfield" style={{ marginTop: 14 }}>
           <label>Where?</label>
-          <div className="linput row" style={{ gap: 8, padding: '0 12px' }}><MapPin size={16} color="#1F6FD1" /><select style={{ border: 0, outline: 'none', background: 'transparent', flex: 1, height: 42 }} value={street} onChange={e => setStreet(e.target.value)}>{STREETS.map(st => <option key={st.id} value={st.id}>{st.id === 'elm' ? '418 Elm St (current location)' : st.name}</option>)}</select></div>
+          <div className="linput row" style={{ gap: 8, padding: '0 12px' }}><MapPin size={16} color="#15171C" /><select style={{ border: 0, outline: 'none', background: 'transparent', flex: 1, height: 42 }} value={street} onChange={e => setStreet(e.target.value)}>{STREETS.map(st => <option key={st.id} value={st.id}>{st.id === 'elm' ? '418 Elm St (current location)' : st.name}</option>)}</select></div>
         </div>
         <button className="lbtn primary" style={{ marginTop: 18, height: 50, fontSize: 15 }} disabled={!text.trim() || !cat} onClick={async () => {
           setSent(true)
@@ -263,7 +263,7 @@ function Issue({ s, id }) {
   const msgs = (s.inbox || []).filter(m => m.reqId === q.id)
   return (
     <>
-      <AppHeader title={q.id} back="/resident" right={<button className="iconbtn" onClick={() => follow(q.id)} title={fol ? 'Stop following' : 'Follow'}>{fol ? <BellRing size={20} color="#1F6FD1" /> : <Bell size={20} />}</button>} />
+      <AppHeader title={q.id} back="/resident" right={<button className="iconbtn" onClick={() => follow(q.id)} title={fol ? 'Stop following' : 'Follow'}>{fol ? <BellRing size={20} color="#15171C" /> : <Bell size={20} />}</button>} />
       <div style={{ padding: '0 16px 110px' }}>
         {q.afterPhoto ? (
           <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}><Photo c={q.category} label="Before" style={{ borderRadius: 14 }} /><Photo src={EXTRA.crew.src} c={q.category} label="After" style={{ borderRadius: 14 }} /></div>
@@ -336,7 +336,7 @@ function City({ s }) {
         <div className="lcard" style={{ padding: 18, display: 'flex', gap: 16, alignItems: 'center' }}>
           <svg width="128" height="128" style={{ transform: 'rotate(-90deg)', flex: 'none' }}>
             <circle cx="64" cy="64" r={r} fill="none" stroke="#E8ECE9" strokeWidth="11" />
-            <circle className="ringarc" cx="64" cy="64" r={r} fill="none" stroke={healthColor(h.index).replace('var(--mint)', '#2E9B68')} strokeWidth="11" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - h.index / 100)} />
+            <circle className="ringarc" cx="64" cy="64" r={r} fill="none" stroke={h.index >= 65 ? '#121419' : h.index >= 50 ? '#C77700' : '#D93025'} strokeWidth="11" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - h.index / 100)} />
           </svg>
           <div><div className="tiny muted" style={{ fontWeight: 700 }}>City health index</div><b style={{ fontSize: 40, letterSpacing: '-.04em', lineHeight: 1 }}><Num value={h.index} /></b><span className="muted"> / 100</span><p className="tiny muted" style={{ marginTop: 6, lineHeight: 1.45 }}>Updated live from every open request. Goes up when problems get fixed on time.</p></div>
         </div>
@@ -345,7 +345,7 @@ function City({ s }) {
           {h.domains.map(d => (
             <div key={d.key} style={{ padding: '9px 0', borderBottom: '1px solid #EEF1EE' }}>
               <div className="row" style={{ fontSize: 13, marginBottom: 6 }}><span style={{ flex: 1, fontWeight: 600 }}>{d.label}</span><span className="tiny muted" style={{ marginRight: 8 }}>{d.open} open</span><b>{d.score}</b></div>
-              <div style={{ height: 6, borderRadius: 9, background: '#EDF0EE', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${d.score}%`, background: d.color, borderRadius: 9, transition: 'width 1s' }} /></div>
+              <div style={{ height: 6, borderRadius: 9, background: '#EDF0EE', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${d.score}%`, background: '#121419', borderRadius: 9, transition: 'width 1s' }} /></div>
             </div>
           ))}
         </div>

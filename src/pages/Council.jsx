@@ -60,7 +60,7 @@ function Patterns() {
               <div key={c} className="row" style={{ gap: 10, padding: '5px 0' }}>
                 <CatIcon c={c} size={22} />
                 <span className="small" style={{ width: 130 }}>{CATEGORIES[c].label}</span>
-                <span className="hbar" style={{ flex: 1 }}><i style={{ width: `${(n / 1840) * 100}%`, background: DOMAINS[CATEGORIES[c].domain].color }} /></span>
+                <span className="hbar" style={{ flex: 1 }}><i style={{ width: `${(n / 1840) * 100}%`, background: 'var(--tx)' }} /></span>
                 <span className="small mono" style={{ width: 46, textAlign: 'right', fontWeight: 650 }}>{n.toLocaleString()}</span>
               </div>
             ))}

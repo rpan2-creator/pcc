@@ -2,15 +2,18 @@ import { useTheme } from '../theme.js'
 import { useMemo, useState } from 'react'
 import { MAP_W, MAP_H, RIVER, DISTRICTS, STREETS, BRIDGES, LANDMARKS, PARKS, CATEGORIES, districtPolygon, riverY } from '../data/city.js'
 import { priorityOf, getState } from '../store.js'
-import { CAT_ICON } from './ui.jsx'
-import { Cross, School, Landmark, Flame } from 'lucide-react'
+import { Photo } from './ui.jsx'
+import { Cross, School, Landmark, Flame, X } from 'lucide-react'
+import { ago } from '../format.js'
 
-const LEVEL_COL = { high: '#FF7C69', medium: '#FFC461', low: '#8E8E9C' }
+export const LEVEL_COL = { high: '#FF453A', medium: '#FF9F0A', low: '#C7CBD1' }
+const LEVEL_COL_LIGHT = { high: '#E5372C', medium: '#E88600', low: '#5C6370' }
 const riverPath = (off = 0) => 'M' + RIVER.map(([x, y]) => `${x} ${y + off}`).join(' L')
 function rng(seed) { let a = seed; return () => { a = (a * 1664525 + 1013904223) % 4294967296; return a / 4294967296 } }
 
-const DARK = { bg: '#09090B', block: '#101013', block2: '#131317', blockLine: '#18181D', minor: '#16161B', water: '#0C1220', waterEdge: '#1A2540', park: '#101511', label: '#5E5E6A', district: '#3A3A45', em: ['#26262F', '#CFCBEA'], art: ['#1D1D23', '#383842'], res: ['#16161B', '#2A2A31'] }
-const LIGHT = { bg: '#E8EBF1', block: '#DDE1E9', block2: '#D5DAE3', blockLine: '#CED4DE', minor: '#FFFFFF', water: '#BCD4EC', waterEdge: '#A6C4E4', park: '#D2E6D4', label: '#7A8292', district: '#A2A9B7', em: ['#C9CEDC', '#FFFFFF'], art: ['#CDD2DC', '#FFFFFF'], res: ['#D8DDE6', '#FFFFFF'] }
+// Citizen-style base maps: quiet, low-contrast streets so incidents carry the colour.
+const DARK = { bg: '#0D0F12', block: '#13161A', block2: '#16191E', blockLine: '#13161A', minor: '#171A1F', water: '#0B1118', waterEdge: '#0F1720', park: '#111713', label: '#5A6069', district: '#363B43', em: ['#1E2228', '#3A4049'], art: ['#1C2026', '#30353D'], res: ['#171A1F', '#252A31'], bridge: '#1E2228', lm: '#6B717B', ring: '#0D0F12' }
+const LIGHT = { bg: '#EEF0F3', block: '#E4E7EC', block2: '#DFE3E9', blockLine: '#E4E7EC', minor: '#FFFFFF', water: '#CADCEE', waterEdge: '#BCD2EA', park: '#DCE9DD', label: '#8A909B', district: '#AEB4BE', em: ['#D3D8E0', '#FFFFFF'], art: ['#D9DDE4', '#FFFFFF'], res: ['#E0E4EA', '#FAFBFC'], bridge: '#FFFFFF', lm: '#7B818C', ring: '#FFFFFF' }
 
 function useBlocks() {
   return useMemo(() => {
@@ -34,31 +37,32 @@ function useBlocks() {
   }, [])
 }
 
-export default function CityMap({ requests = [], selected, onSelect, colorBy = 'priority', snow, now, height, legend = true, labels = true, aspect, theme: themeProp, flow = true, home }) {
+export default function CityMap({ requests = [], selected, onSelect, colorBy = 'priority', snow, now, height, legend = true, labels = true, aspect, theme: themeProp, home, live = true, tags = true }) {
   const [tip, setTip] = useState(null)
+  const [pick, setPick] = useState(null)
   const blocks = useBlocks()
   const s = getState()
   const appTheme = useTheme()
   const theme = themeProp || appTheme
   const P = theme === 'light' ? LIGHT : DARK
-  const snowCol = r => { const hrs = (r.end - now) / 3600e3; return hrs <= 2 ? '#7BD88F' : hrs <= 5 ? '#FFC461' : '#FF7C69' }
+  const LC = theme === 'light' ? LEVEL_COL_LIGHT : LEVEL_COL
+  const snowCol = r => { const hrs = (r.end - now) / 3600e3; return hrs <= 2 ? '#30D158' : hrs <= 5 ? LC.medium : LC.high }
   const tall = aspect === 'tall'
   const ox = tall ? 250 : 0, oy = tall ? 230 : 0, vbw = tall ? 520 : MAP_W, vbh = tall ? 390 : MAP_H
   const road = st => st.kind === 'emergency' ? { c: P.em, w: 7 } : st.kind === 'arterial' ? { c: P.art, w: 5.5 } : { c: P.res, w: 4 }
-  const fid = `glow-${theme}`
+  const ranked = useMemo(() => requests.map(q => ({ q, p: priorityOf(q, s) })), [requests, s])
+  const tagged = tags && !snow ? new Set(ranked.filter(x => x.p.level === 'high' && !['resolved', 'closed'].includes(x.q.status)).sort((a, b) => b.p.score - a.p.score).reduce((acc, x) => { if (acc.length < (tall ? 2 : 4) && acc.every(y => Math.hypot(y.q.x - x.q.x, y.q.y - x.q.y) > 110)) acc.push(x); return acc }, []).map(x => x.q.id)) : new Set()
+  const card = ranked.find(x => x.q.id === pick)
+  const toPx = (q, el) => { const box = el.getBoundingClientRect(); return { x: (q.x - ox) * (box.width / vbw), y: (q.y - oy) * (box.height / vbh) } }
   return (
     <div className={`map ${theme === 'light' ? 'light' : ''}`} style={height ? { height } : null}>
-      <svg viewBox={`${ox} ${oy} ${vbw} ${vbh}`} preserveAspectRatio="xMidYMid slice" style={height ? { height: '100%' } : null} onMouseLeave={() => setTip(null)}>
-        <defs>
-          <filter id={fid} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-          <filter id={`${fid}-soft`} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" /></filter>
-        </defs>
+      <svg viewBox={`${ox} ${oy} ${vbw} ${vbh}`} preserveAspectRatio="xMidYMid slice" style={height ? { height: '100%' } : null} onMouseLeave={() => setTip(null)} onClick={e => { if (e.target.tagName === 'rect' || e.target.tagName === 'svg') setPick(null) }}>
         <rect x="0" y="0" width={MAP_W} height={MAP_H} fill={P.bg} />
         <g stroke={P.minor} strokeWidth="2.2">
           {[60, 190, 330, 470, 615, 760, 885].map(x => <line key={'v' + x} x1={x} y1="0" x2={x} y2={MAP_H} />)}
           {[40, 115, 188, 262, 380, 468, 540].map(y => <line key={'h' + y} x1="0" y1={y} x2={MAP_W} y2={y} />)}
         </g>
-        <g>{blocks.map((b, i) => <rect key={i} x={b.x} y={b.y} width={b.w} height={b.h} rx="1.5" fill={b.s > .72 ? P.block2 : P.block} stroke={P.blockLine} strokeWidth=".6" />)}</g>
+        <g>{blocks.map((b, i) => <rect key={i} x={b.x} y={b.y} width={b.w} height={b.h} rx="2" fill={b.s > .72 ? P.block2 : P.block} />)}</g>
         {PARKS.map(p => <polygon key={p.name} points={p.pts} fill={P.park} />)}
         <path d={riverPath()} stroke={P.waterEdge} strokeWidth="46" fill="none" strokeLinecap="round" />
         <path d={riverPath()} stroke={P.water} strokeWidth="42" fill="none" strokeLinecap="round" />
@@ -68,74 +72,97 @@ export default function CityMap({ requests = [], selected, onSelect, colorBy = '
           const pts = st.pts.map(p => p.join(',')).join(' ')
           if (r) return (
             <g key={st.id}>
-              <polyline points={pts} fill="none" stroke={snowCol(r)} strokeWidth={rd.w + 6} opacity=".35" filter={`url(#${fid}-soft)`} />
-              <polyline points={pts} fill="none" stroke={snowCol(r)} strokeWidth={rd.w} strokeLinecap="round" />
+              <polyline points={pts} fill="none" stroke={snowCol(r)} strokeWidth={rd.w + 8} opacity=".18" strokeLinecap="round" />
+              <polyline className="snowline" points={pts} fill="none" stroke={snowCol(r)} strokeWidth={rd.w - 1} strokeLinecap="round" />
             </g>
           )
           return (
             <g key={st.id}>
-              <polyline points={pts} fill="none" stroke={rd.c[0]} strokeWidth={rd.w + 2.4} strokeLinecap="round" strokeLinejoin="round" />
-              <polyline points={pts} fill="none" stroke={rd.c[1]} strokeWidth={rd.w} strokeLinecap="round" strokeLinejoin="round" opacity={theme === 'dark' && st.kind === 'emergency' ? .22 : 1} />
-              {theme === 'dark' && st.kind !== 'residential' && flow && <polyline className="flowline" points={pts} fill="none" stroke={st.kind === 'emergency' ? '#9B8CFF' : '#55556A'} strokeWidth="1.6" strokeLinecap="round" opacity=".8" style={{ animationDuration: `${1.4 + (st.id.length % 5) * 0.3}s` }} />}
+              <polyline points={pts} fill="none" stroke={rd.c[0]} strokeWidth={rd.w + 2} strokeLinecap="round" strokeLinejoin="round" />
+              <polyline points={pts} fill="none" stroke={rd.c[1]} strokeWidth={rd.w} strokeLinecap="round" strokeLinejoin="round" />
             </g>
           )
         })}
-        {BRIDGES.map(x => <rect key={x} x={x - 9} y={riverY(x) - 26} width="18" height="52" fill={theme === 'dark' ? '#1D1D23' : '#FFFFFF'} stroke={theme === 'dark' ? '#2A3632' : '#BDB6A6'} />)}
+        {BRIDGES.map(x => <rect key={x} x={x - 9} y={riverY(x) - 26} width="18" height="52" rx="2" fill={P.bridge} />)}
         {labels && STREETS.map(st => {
           const [a, b] = st.pts
           const vertical = Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1])
           const x = vertical ? a[0] + 3 : a[0] + 30 + (st.id === 'elm' ? 250 : st.id === 'harbor' ? 140 : st.id === 'main' ? 80 : 0)
           const y = vertical ? a[1] + 70 + (st.id === 'maple' ? 40 : st.id === 'washington' ? 380 : 0) : a[1] + 3.5
-          return <text key={st.id} x={x} y={y} fontSize="9.5" fontWeight="600" fill={P.label} stroke={P.bg} strokeWidth="3" paintOrder="stroke" transform={vertical ? `rotate(90 ${x} ${y})` : undefined}>{st.name}</text>
+          return <text key={st.id} x={x} y={y} fontSize="9" fontWeight="600" fill={P.label} stroke={P.bg} strokeWidth="3" paintOrder="stroke" transform={vertical ? `rotate(90 ${x} ${y})` : undefined}>{st.name}</text>
         })}
-        {labels && DISTRICTS.map(d => <text key={d.id} x={d.label[0]} y={d.label[1] + (d.north ? 8 : -4)} textAnchor="middle" fontSize="11.5" fontWeight="700" fill={P.district} stroke={P.bg} strokeWidth="4" paintOrder="stroke" style={{ letterSpacing: '.22em' }}>{d.name.toUpperCase()}</text>)}
+        {labels && DISTRICTS.map(d => <text key={d.id} x={d.label[0]} y={d.label[1] + (d.north ? 8 : -4)} textAnchor="middle" fontSize="10.5" fontWeight="700" fill={P.district} stroke={P.bg} strokeWidth="4" paintOrder="stroke" style={{ letterSpacing: '.24em' }}>{d.name.toUpperCase()}</text>)}
         {LANDMARKS.map(l => {
           const I = l.kind === 'hospital' ? Cross : l.kind === 'school' ? School : l.kind === 'fire' ? Flame : Landmark
-          const c = theme === 'dark' ? '#9A9AA6' : '#55605A'
           return (
-            <g key={l.id} opacity=".9">
-              <circle cx={l.x} cy={l.y} r="9" fill={theme === 'dark' ? '#18181D' : '#fff'} stroke={c} strokeWidth="1" />
-              <I x={l.x - 5.5} y={l.y - 5.5} width="11" height="11" color={l.kind === 'hospital' ? '#FF7C69' : c} strokeWidth={2.4} />
-              {labels && <text x={l.x + 13} y={l.y + 3.5} fontSize="9.5" fontWeight="600" fill={P.label} stroke={P.bg} strokeWidth="3" paintOrder="stroke">{l.name}</text>}
+            <g key={l.id} opacity=".85" style={{ pointerEvents: 'none' }}>
+              <circle cx={l.x} cy={l.y} r="8" fill={P.bridge} />
+              <I x={l.x - 5} y={l.y - 5} width="10" height="10" color={P.lm} strokeWidth={2.4} />
+              {labels && <text x={l.x + 12} y={l.y + 3.5} fontSize="9" fontWeight="600" fill={P.label} stroke={P.bg} strokeWidth="3" paintOrder="stroke">{l.name}</text>}
             </g>
           )
         })}
-        {requests.map(q => {
-          const p = priorityOf(q, s)
-          const col = colorBy === 'category' ? CATEGORIES[q.category].color : LEVEL_COL[p.level]
+        {ranked.map(({ q, p }, i) => {
+          const col = colorBy === 'category' ? CATEGORIES[q.category].color : LC[p.level]
           const n = q.reports.length
-          const sel = selected === q.id
+          const sel = (pick || selected) === q.id
           const dim = q.status === 'resolved' || q.status === 'closed'
-          const I = CAT_ICON[q.category]
-          const R = 8.5 + Math.min(4, n * 0.4)
+          const R = (p.level === 'high' ? 6 : p.level === 'medium' ? 5 : 4) + Math.min(3, n * 0.3)
           return (
-            <g key={q.id} className="pin" opacity={dim ? 0.4 : 1} onClick={() => onSelect?.(q.id)}
-              onMouseEnter={e => { const box = e.currentTarget.ownerSVGElement.getBoundingClientRect(); setTip({ x: (q.x - ox) * (box.width / vbw), y: (q.y - oy) * (box.height / vbh), q }) }}
+            <g key={q.id} className="pin" opacity={dim ? 0.35 : 1} style={{ animationDelay: `${Math.min(i, 60) * 12}ms` }}
+              onClick={e => { e.stopPropagation(); setPick(q.id) }}
+              onMouseEnter={e => setTip({ ...toPx(q, e.currentTarget.ownerSVGElement), q })}
               onMouseLeave={() => setTip(null)}>
-              {theme === 'dark' && <circle cx={q.x} cy={q.y} r={R + 4} fill={col} opacity=".22" filter={`url(#${fid}-soft)`} />}
-              {sel && <circle cx={q.x} cy={q.y} r={R + 6} fill="none" stroke={col} strokeWidth="2" opacity=".7"><animate attributeName="r" values={`${R + 3};${R + 13};${R + 3}`} dur="1.8s" repeatCount="indefinite" /><animate attributeName="opacity" values=".8;0;.8" dur="1.8s" repeatCount="indefinite" /></circle>}
-              <circle cx={q.x} cy={q.y} r={R} fill={col} stroke={theme === 'dark' ? '#09090B' : '#fff'} strokeWidth="1.8" />
-              <I x={q.x - R * 0.55} y={q.y - R * 0.55} width={R * 1.1} height={R * 1.1} color={theme === 'dark' ? '#0B0B0E' : '#fff'} strokeWidth={2.5} />
-              {n > 2 && <g><circle cx={q.x + R * 0.85} cy={q.y - R * 0.85} r="6" fill={theme === 'dark' ? '#EDEDF2' : '#132019'} /><text x={q.x + R * 0.85} y={q.y - R * 0.85 + 2.8} textAnchor="middle" fontSize="7.5" fontWeight="800" fill={theme === 'dark' ? '#09090B' : '#fff'} style={{ pointerEvents: 'none' }}>{n}</text></g>}
+              <circle cx={q.x} cy={q.y} r={R * 2.6} fill={col} opacity=".14" />
+              {p.level === 'high' && !dim && <circle className="pulse" cx={q.x} cy={q.y} r={R * 2} fill="none" stroke={col} strokeWidth="1.5" style={{ animationDelay: `${(i % 7) * 0.3}s` }} />}
+              {sel && <circle cx={q.x} cy={q.y} r={R + 7} fill="none" stroke={theme === 'light' ? '#12141B' : '#fff'} strokeWidth="2" />}
+              <circle cx={q.x} cy={q.y} r={R} fill={col} stroke={P.ring} strokeWidth="2" />
+              {n > 2 && <text x={q.x} y={q.y + 2.6} textAnchor="middle" fontSize="7" fontWeight="800" fill={p.level === 'low' && theme !== 'light' ? '#0D0F12' : '#fff'} style={{ pointerEvents: 'none' }}>{n}</text>}
+            </g>
+          )
+        })}
+        {ranked.filter(x => tagged.has(x.q.id)).map(({ q }) => {
+          const label = `${CATEGORIES[q.category].label} · ${q.reports.length}`
+          const w = label.length * 6.5 + 22
+          const left = q.x + w + 22 > ox + vbw
+          const tx = left ? q.x - 12 - w : q.x + 12
+          return (
+            <g key={'t' + q.id} className="maptag" style={{ pointerEvents: 'none' }}>
+              <rect x={tx} y={q.y - 12} width={w} height="24" rx="12" fill={theme === 'light' ? 'rgba(255,255,255,.92)' : 'rgba(24,27,32,.88)'} stroke={theme === 'light' ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.1)'} />
+              <circle cx={tx + 11} cy={q.y} r="3.5" fill={LC.high} />
+              <text x={tx + 19} y={q.y + 4} fontSize="11.5" fontWeight="700" fill={theme === 'light' ? '#12141B' : '#EEF0F3'}>{label}</text>
             </g>
           )
         })}
         {home && <g style={{ pointerEvents: 'none' }}>
-          <circle cx={home.x} cy={home.y} r="10" fill="#1F6FD1" opacity=".25"><animate attributeName="r" values="8;20;8" dur="2.4s" repeatCount="indefinite" /><animate attributeName="opacity" values=".35;0;.35" dur="2.4s" repeatCount="indefinite" /></circle>
-          <circle cx={home.x} cy={home.y} r="6.5" fill="#1F6FD1" stroke="#fff" strokeWidth="2.5" />
+          <circle className="pulse blue" cx={home.x} cy={home.y} r="14" fill="#0A84FF" opacity=".2" />
+          <circle cx={home.x} cy={home.y} r="6.5" fill="#0A84FF" stroke="#fff" strokeWidth="2.5" />
         </g>}
       </svg>
-      {tip && (
+      {live && !snow && <div className="maplive"><i />Live · {ranked.filter(x => !['resolved', 'closed'].includes(x.q.status)).length} open</div>}
+      {tip && !card && (
         <div className="maptip" style={{ left: tip.x, top: tip.y }}>
           <b>{CATEGORIES[tip.q.category].label}</b>
-          <span>{tip.q.address} · {tip.q.reports.length} report{tip.q.reports.length === 1 ? '' : 's'} · {tip.q.upvotes} votes</span>
+          <span>{tip.q.address} · {tip.q.reports.length} report{tip.q.reports.length === 1 ? '' : 's'}</span>
         </div>
       )}
-      {legend && !snow && colorBy === 'priority' && (
-        <div className="maplegend"><span><i style={{ background: LEVEL_COL.high, color: LEVEL_COL.high }} />High</span><span><i style={{ background: LEVEL_COL.medium, color: LEVEL_COL.medium }} />Medium</span><span><i style={{ background: LEVEL_COL.low, color: LEVEL_COL.low }} />Low</span><span style={{ opacity: .7 }}>Badge = merged reports</span></div>
+      {card && (
+        <div className="mapcard" key={card.q.id}>
+          <div className="mc-photo"><Photo c={card.q.category} seed={card.q.id.charCodeAt(6)} style={{ aspectRatio: '1', borderRadius: 10 }} /></div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="row" style={{ gap: 6 }}><i className="lvl" style={{ background: LC[card.p.level] }} /><b>{CATEGORIES[card.q.category].label}</b></div>
+            <div className="mc-sub">{card.q.address} · {ago(card.q.createdAt, s.now)}</div>
+            <div className="mc-sub">{card.q.reports.length} report{card.q.reports.length === 1 ? '' : 's'} · {card.q.upvotes} votes</div>
+          </div>
+          {onSelect && <button className="btn sm primary" onClick={() => onSelect(card.q.id)}>Open</button>}
+          <button className="iconbtn" style={{ width: 26, height: 26 }} onClick={() => setPick(null)} aria-label="Close"><X size={14} /></button>
+        </div>
+      )}
+      {legend && !snow && colorBy === 'priority' && !card && (
+        <div className="maplegend"><span><i style={{ background: LC.high }} />High</span><span><i style={{ background: LC.medium }} />Medium</span><span><i style={{ background: LC.low }} />Low</span><span style={{ opacity: .7 }}>Number = merged reports</span></div>
       )}
       {legend && snow && (
-        <div className="maplegend"><span><i style={{ background: '#7BD88F' }} />Plowed within 2 h</span><span><i style={{ background: '#FFC461' }} />2–5 h</span><span><i style={{ background: '#FF7C69' }} />Over 5 h</span></div>
+        <div className="maplegend"><span><i style={{ background: '#30D158' }} />Plowed within 2 h</span><span><i style={{ background: LC.medium }} />2–5 h</span><span><i style={{ background: LC.high }} />Over 5 h</span></div>
       )}
     </div>
   )
