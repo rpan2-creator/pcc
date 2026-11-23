@@ -9,7 +9,7 @@ import { GUIDE } from '../guide.js'
 export function Logo({ size = 30 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <defs><radialGradient id="lg" cx="30%" cy="25%" r="90%"><stop offset="0" stopColor="#DCD6FF" /><stop offset=".55" stopColor="#7B6CF6" /><stop offset="1" stopColor="#3A2D99" /></radialGradient></defs>
+      <defs><radialGradient id="lg" cx="30%" cy="25%" r="90%"><stop offset="0" stopColor="#FFFFFF" /><stop offset=".5" stopColor="#D6D3EE" /><stop offset="1" stopColor="#7E7AA6" /></radialGradient></defs>
       <rect width="32" height="32" rx="9" fill="url(#lg)" />
       <circle cx="16" cy="16" r="4.2" fill="#15103A" />
       <circle cx="16" cy="16" r="9" fill="none" stroke="#15103A" strokeWidth="2" strokeDasharray="4 3.2" />

@@ -8,7 +8,7 @@ const LEVEL_COL = { high: '#FF7C69', medium: '#FFC461', low: '#8E8E9C' }
 const riverPath = (off = 0) => 'M' + RIVER.map(([x, y]) => `${x} ${y + off}`).join(' L')
 function rng(seed) { let a = seed; return () => { a = (a * 1664525 + 1013904223) % 4294967296; return a / 4294967296 } }
 
-const DARK = { bg: '#09090B', block: '#101013', block2: '#131317', blockLine: '#18181D', minor: '#16161B', water: '#0C1220', waterEdge: '#1A2540', park: '#101511', label: '#5E5E6A', district: '#3A3A45', em: ['#2A2550', '#9B8CFF'], art: ['#1D1D23', '#383842'], res: ['#16161B', '#2A2A31'] }
+const DARK = { bg: '#09090B', block: '#101013', block2: '#131317', blockLine: '#18181D', minor: '#16161B', water: '#0C1220', waterEdge: '#1A2540', park: '#101511', label: '#5E5E6A', district: '#3A3A45', em: ['#26262F', '#CFCBEA'], art: ['#1D1D23', '#383842'], res: ['#16161B', '#2A2A31'] }
 const LIGHT = { bg: '#EEF0EC', block: '#E2E5E0', block2: '#DADED8', blockLine: '#D3D8D2', minor: '#FFFFFF', water: '#B8D8E8', waterEdge: '#A3CBDE', park: '#CFE6C3', label: '#7B8580', district: '#A5ADA8', em: ['#E7C36A', '#FBDC8E'], art: ['#CBD1CB', '#FFFFFF'], res: ['#D6DBD5', '#FFFFFF'] }
 
 function useBlocks() {
