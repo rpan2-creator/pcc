@@ -38,7 +38,7 @@ export default function Health({ s, base = '/ops/requests/', title = 'City healt
           <div className="row" style={{ marginBottom: 6 }}><b>Last 12 weeks</b><span className="spacer" /><span className="tiny muted">weekly index; this week is live</span></div>
           <svg viewBox={`-12 -10 ${w + 40} ${hgt + 30}`} style={{ width: '100%', height: 130 }}>
             <defs><linearGradient id="hg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="var(--mint)" stopOpacity=".28" /><stop offset="1" stopColor="var(--mint)" stopOpacity="0" /></linearGradient></defs>
-            {[min + 10, max - 10].filter((v, i, a) => a.indexOf(v) === i && v > min && v < max).map(v => <g key={v}><line x1="0" x2={w} y1={hgt - ((v - min) / (max - min)) * hgt} y2={hgt - ((v - min) / (max - min)) * hgt} stroke="rgba(210,255,230,.07)" /><text x={w + 4} y={hgt - ((v - min) / (max - min)) * hgt + 4} fontSize="10" fill="var(--tx3)">{v}</text></g>)}
+            {[min + 10, max - 10].filter((v, i, a) => a.indexOf(v) === i && v > min && v < max).map(v => <g key={v}><line x1="0" x2={w} y1={hgt - ((v - min) / (max - min)) * hgt} y2={hgt - ((v - min) / (max - min)) * hgt} stroke="rgba(235,235,255,.07)" /><text x={w + 4} y={hgt - ((v - min) / (max - min)) * hgt + 4} fontSize="10" fill="var(--tx3)">{v}</text></g>)}
             <path d={`${path} L ${w} ${hgt} L 0 ${hgt} Z`} fill="url(#hg)" />
             <path d={path} fill="none" stroke="var(--mint)" strokeWidth="2.2" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 6px var(--mintglow))' }} />
             <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="5" fill="var(--mint)"><animate attributeName="r" values="5;8;5" dur="2s" repeatCount="indefinite" /></circle>

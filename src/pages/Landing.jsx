@@ -118,7 +118,7 @@ export default function Landing() {
           {[
             [Smartphone, 'var(--blue)', 'var(--bluebg)', 'Residents', 'Report anything in a sentence and a photo, see what neighbors already reported, and get a real date.', ['Upvote instead of re-reporting', 'Plain-language status and time estimate', 'Confirm the fix from the after photo'], '/resident', 'Open the resident app'],
             [Building2, 'var(--mint)', 'var(--mintbg)', 'City staff', 'A command center for operations and a clean work queue for each department, already sorted and ranked.', ['Only the unsure calls reach a person', 'Reminders and escalations run themselves', 'Every AI action can be explained and undone'], '/ops', 'Open the staff console'],
-            [Landmark, 'var(--violet)', 'rgba(181,156,255,.12)', 'Council & public', 'A live City Health index: what is broken, where, for how long, and where the money goes.', ['Health score for every service area', 'Fairness across districts', 'Repeat problems worth a lasting fix'], '/council', 'Open city health'],
+            [Landmark, 'var(--violet)', 'rgba(242,181,107,.12)', 'Council & public', 'A live City Health index: what is broken, where, for how long, and where the money goes.', ['Health score for every service area', 'Fairness across districts', 'Repeat problems worth a lasting fix'], '/council', 'Open city health'],
           ].map(([I, c, bg, t, p, li, to, cta]) => (
             <div key={t} className="card whocard spot lift">
               <span className="wi" style={{ background: bg, color: c }}><I size={22} /></span>
@@ -139,7 +139,7 @@ export default function Landing() {
             <div key={t} className={`pst ${k}`} style={{ transitionDelay: `${i * 80}ms` }}>
               <div className="pic"><I size={28} /></div>
               <b>{t}</b><p>{p}</p>
-              <span className="who" style={{ background: k === 'ai' ? 'var(--mintbg)' : k === 'res' ? 'var(--bluebg)' : 'rgba(210,255,230,.06)', color: k === 'ai' ? 'var(--mint)' : k === 'res' ? 'var(--blue)' : 'var(--tx2)' }}>{who}</span>
+              <span className="who" style={{ background: k === 'ai' ? 'var(--mintbg)' : k === 'res' ? 'var(--bluebg)' : 'rgba(235,235,255,.06)', color: k === 'ai' ? 'var(--mint)' : k === 'res' ? 'var(--blue)' : 'var(--tx2)' }}>{who}</span>
             </div>
           ))}
         </div>

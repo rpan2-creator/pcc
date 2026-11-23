@@ -5,10 +5,10 @@ import { CATEGORIES, DEPARTMENTS } from '../data/city.js'
 import { STAGES, STAGE_IX, STATUS_LABEL } from '../store.js'
 
 export const ROLES = {
-  ops: { key: 'ops', icon: Building2, name: 'Dana Reyes', title: 'City operations manager', short: 'Operations', color: '#1E7A58', home: '/ops', desc: 'Watches the whole city, decides what the AI is unsure about, approves big plans' },
+  ops: { key: 'ops', icon: Building2, name: 'Dana Reyes', title: 'City operations manager', short: 'Operations', color: '#5A4BD1', home: '/ops', desc: 'Watches the whole city, decides what the AI is unsure about, approves big plans' },
   dept: { key: 'dept', icon: HardHat, name: 'Marcus Lee', title: 'Public Works manager', short: 'Public Works', color: '#B2662E', home: '/dept', desc: 'Accepts work, books crews, closes jobs with proof' },
-  council: { key: 'council', icon: Landmark, name: 'James Ortiz', title: 'City council member', short: 'City council', color: '#7357B5', home: '/council', desc: 'Reads city health, equity and where money goes' },
-  systems: { key: 'systems', icon: Plug, name: 'IT administrator', title: 'Connected city systems', short: 'Integrations', color: '#4B5A53', home: '/systems', desc: 'Sees how PCC connects to existing city software' },
+  council: { key: 'council', icon: Landmark, name: 'James Ortiz', title: 'City council member', short: 'City council', color: '#A8693A', home: '/council', desc: 'Reads city health, equity and where money goes' },
+  systems: { key: 'systems', icon: Plug, name: 'IT administrator', title: 'Connected city systems', short: 'Integrations', color: '#4A4A55', home: '/systems', desc: 'Sees how PCC connects to existing city software' },
   resident: { key: 'resident', icon: Smartphone, name: 'Priya Shah', title: 'Resident of Riverside', short: 'Resident app', color: '#2C73D2', home: '/resident', desc: 'Reports problems, votes, follows them to the fix' },
 }
 
@@ -24,7 +24,7 @@ export function AgentMark({ size = 'md', busy }) {
 export const CAT_ICON = { pothole: Construction, sidewalk: Footprints, sign: Signpost, signal: TrafficCone, streetlight: LightbulbOff, vehicle: Car, leak: Droplets, flood: Waves, sewer: Toilet, trash: Trash2, dumping: PackageX, graffiti: SprayCan, tree: TreeDeciduous, park: Armchair, building: Building, heat: Thermometer, noise: Volume2, rodent: Rat, snow: Snowflake }
 export function CatIcon({ c, size = 34, radius }) {
   const I = CAT_ICON[c] || Wrench
-  const col = CATEGORIES[c]?.color || '#4E6A60'
+  const col = CATEGORIES[c]?.color || '#55556A'
   return <span className="caticon" style={{ width: size, height: size, borderRadius: radius ?? size * 0.3, background: `linear-gradient(140deg, ${col}, ${col}B3)` }}><I size={Math.round(size * 0.52)} color="#fff" strokeWidth={2.2} /></span>
 }
 export function Cat({ c, label = true, size = 22 }) {
@@ -45,7 +45,7 @@ export function Status({ s }) { return <span key={s} className={`pill st st-${s}
 export function Conf({ v }) {
   const pct = Math.round(v * 100)
   const col = pct >= 80 ? 'var(--green)' : pct >= 70 ? 'var(--amber)' : 'var(--red)'
-  return <span className="conf" style={{ color: col }}><span className="ring" style={{ background: `conic-gradient(${col} ${pct * 3.6}deg, rgba(210,255,230,.1) 0)` }} />{pct}%</span>
+  return <span className="conf" style={{ color: col }}><span className="ring" style={{ background: `conic-gradient(${col} ${pct * 3.6}deg, rgba(235,235,255,.1) 0)` }} />{pct}%</span>
 }
 
 const FEED_ICON = { merge: GitMerge, route: Route, notify: Bell, review: Flag, priority: ArrowUpRight, sync: RefreshCcw, escalate: ShieldAlert, storm: Snowflake, plan: MapIcon, proposal: Lightbulb, nudge: Bell, accept: UserCheck, schedule: CalendarCheck, start: Wrench, resolve: CheckCircle2, undo: Undo2, rules: SlidersHorizontal, fleet: Truck, approve: FileCheck2, reject: Ban, override: Hand, reroute: Route, unmerge: Split, learn: BrainCircuit, send: Send, confirm: BadgeCheck, reopen: RotateCw }
@@ -161,7 +161,7 @@ export function HealthRing({ value, size = 160, stroke = 12, label = 'City healt
   return (
     <div className="ring-wrap" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(210,255,230,.08)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(235,235,255,.08)" strokeWidth={stroke} />
         <circle className="ringarc" cx={size / 2} cy={size / 2} r={r} fill="none" stroke={healthColor(value)} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - v / 100)} style={{ filter: `drop-shadow(0 0 8px ${healthColor(value)})` }} />
       </svg>
       <div className="rv"><b style={{ fontSize: size * 0.24 }}><Num value={value} /></b><span>{label}</span>{sub && <span style={{ display: 'block' }}>{sub}</span>}</div>

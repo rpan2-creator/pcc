@@ -129,7 +129,7 @@ function Kpi({ icon: I, l, v, d, tone, agent, dec = 0, suffix = '' }) {
 
 function DecisionRow({ icon, title, sub, to, warn }) {
   return (
-    <Link to={to} className="row" style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)', gap: 12, alignItems: 'flex-start', transition: 'background .15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(210,255,230,.03)'} onMouseLeave={e => e.currentTarget.style.background = ''}>
+    <Link to={to} className="row" style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)', gap: 12, alignItems: 'flex-start', transition: 'background .15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(235,235,255,.03)'} onMouseLeave={e => e.currentTarget.style.background = ''}>
       <span className="agentmark sm" style={warn ? { background: 'var(--amber)', boxShadow: 'none' } : null}>{icon}</span>
       <span style={{ flex: 1 }}><b className="small" style={{ fontWeight: 600, display: 'block', lineHeight: 1.4 }}>{title}</b><span className="tiny muted">{sub}</span></span>
       <ArrowRight size={14} style={{ color: 'var(--tx3)', marginTop: 3 }} />
@@ -229,7 +229,7 @@ function ProposalCard({ p, s }) {
   const rows = [...p.diff].sort((a, b) => (a.after - b.after))
   const pending = p.status === 'pending'
   return (
-    <div className="card" style={pending ? { borderColor: 'rgba(126,240,193,.35)', boxShadow: '0 0 40px -20px var(--mintglow)' } : null}>
+    <div className="card" style={pending ? { borderColor: 'rgba(155,140,255,.35)', boxShadow: '0 0 40px -20px var(--mintglow)' } : null}>
       <div className="cardhead">
         <AgentMark size="sm" /><h3>{p.title}</h3>
         <span className="right">{pending ? <span className="pill agent"><span className="dot" />Waiting for your approval</span> : <span className={`pill ${p.status === 'approved' ? 'ok' : ''}`}>{p.status === 'approved' ? `Approved by ${p.decidedBy}` : `Rejected by ${p.decidedBy}`}</span>}</span>
@@ -239,7 +239,7 @@ function ProposalCard({ p, s }) {
         <div className="row" style={{ gap: 8, marginTop: 12, flexWrap: 'wrap' }}>{p.checks.map((c, i) => <span key={i} className="pill ok" style={{ height: 26 }}><Check size={13} />{c.text}</span>)}</div>
         <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)', marginTop: 18, gap: 24 }}>
           <div>
-            <div className="row small" style={{ marginBottom: 10 }}><b>When each street will be plowed</b><span className="spacer" /><span className="row tiny muted" style={{ gap: 10 }}><span className="row" style={{ gap: 4 }}><i style={{ width: 10, height: 3, background: 'rgba(210,255,230,.25)', borderRadius: 2 }} />current</span><span className="row" style={{ gap: 4 }}><i style={{ width: 10, height: 3, background: 'var(--mint)', borderRadius: 2 }} />proposed</span></span></div>
+            <div className="row small" style={{ marginBottom: 10 }}><b>When each street will be plowed</b><span className="spacer" /><span className="row tiny muted" style={{ gap: 10 }}><span className="row" style={{ gap: 4 }}><i style={{ width: 10, height: 3, background: 'rgba(235,235,255,.25)', borderRadius: 2 }} />current</span><span className="row" style={{ gap: 4 }}><i style={{ width: 10, height: 3, background: 'var(--mint)', borderRadius: 2 }} />proposed</span></span></div>
             {rows.map((d, i) => {
               const b = (d.before - p.at) / H, a = (d.after - p.at) / H
               const late = d.delta > 0.25
@@ -247,7 +247,7 @@ function ProposalCard({ p, s }) {
                 <div key={d.street} className="row rowin" style={{ gap: 10, padding: '3px 0', animationDelay: `${i * 30}ms` }}>
                   <span className="small" style={{ width: 118, fontWeight: late ? 650 : 500, color: late ? 'var(--tx)' : 'var(--tx2)' }}>{d.name}</span>
                   <span style={{ flex: 1, position: 'relative', height: 14 }}>
-                    <i style={{ position: 'absolute', top: 2, left: 0, height: 3, borderRadius: 2, width: `${(b / max) * 100}%`, background: 'rgba(210,255,230,.22)' }} />
+                    <i style={{ position: 'absolute', top: 2, left: 0, height: 3, borderRadius: 2, width: `${(b / max) * 100}%`, background: 'rgba(235,235,255,.22)' }} />
                     <i style={{ position: 'absolute', top: 8, left: 0, height: 3, borderRadius: 2, width: `${(a / max) * 100}%`, background: late ? 'var(--amber)' : 'var(--mint)' }} />
                   </span>
                   <span className="tiny mono" style={{ width: 60, textAlign: 'right', color: late ? 'var(--amber)' : 'var(--tx3)', fontWeight: 700 }}>{late ? `+${d.delta.toFixed(1)} h` : 'same'}</span>
@@ -358,7 +358,7 @@ function Settings({ s }) {
               {ranked.slice(0, 12).map(({ q, p }, i) => {
                 const d = base.current.indexOf(q.id) - i
                 return (
-                  <tr key={q.id} style={{ transition: 'background .4s', background: d ? 'rgba(126,240,193,.04)' : undefined }}>
+                  <tr key={q.id} style={{ transition: 'background .4s', background: d ? 'rgba(155,140,255,.04)' : undefined }}>
                     <td className="mono" style={{ fontWeight: 750 }}>{i + 1}</td>
                     <td><div className="row" style={{ gap: 9 }}><CatIcon c={q.category} size={26} /><div style={{ minWidth: 0 }}><b className="small">{CATEGORIES[q.category].label}</b><div className="tiny muted">{q.address} · {districtName(q.district)}</div></div></div></td>
                     <td><Priority p={p} /></td>
