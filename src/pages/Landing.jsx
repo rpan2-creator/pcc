@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Building2, Smartphone, ArrowRight, Play, Check, Camera, Sparkles, Layers, Route, Wrench, BellRing, Landmark, ShieldCheck, Undo2, Scale, HeartPulse, Users } from 'lucide-react'
-import { Logo } from '../components/Shell.jsx'
+import { Logo, ThemeToggle } from '../components/Shell.jsx'
 import { useStore, healthOf, reset, setGuided } from '../store.js'
 import { CATEGORIES, DOMAINS } from '../data/city.js'
 import { VORTEX } from '../data/photos.js'
@@ -90,6 +90,7 @@ export default function Landing() {
         <a href="#how" className="btn ghost sm">How it works</a>
         <a href="#problems" className="btn ghost sm">What it covers</a>
         <a href="#health" className="btn ghost sm">City health</a>
+        <ThemeToggle />
         <Link to="/resident" className="btn sm"><Smartphone size={14} />Resident app</Link>
         <Link to="/ops" className="btn sm primary"><Building2 size={14} />Staff console</Link>
       </nav>
@@ -139,7 +140,7 @@ export default function Landing() {
             <div key={t} className={`pst ${k}`} style={{ transitionDelay: `${i * 80}ms` }}>
               <div className="pic"><I size={28} /></div>
               <b>{t}</b><p>{p}</p>
-              <span className="who" style={{ background: k === 'ai' ? 'var(--mintbg)' : k === 'res' ? 'var(--bluebg)' : 'rgba(235,235,255,.06)', color: k === 'ai' ? 'var(--mint)' : k === 'res' ? 'var(--blue)' : 'var(--tx2)' }}>{who}</span>
+              <span className="who" style={{ background: k === 'ai' ? 'var(--mintbg)' : k === 'res' ? 'var(--bluebg)' : 'rgba(var(--ink), .06)', color: k === 'ai' ? 'var(--mint)' : k === 'res' ? 'var(--blue)' : 'var(--tx2)' }}>{who}</span>
             </div>
           ))}
         </div>

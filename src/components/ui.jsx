@@ -45,7 +45,7 @@ export function Status({ s }) { return <span key={s} className={`pill st st-${s}
 export function Conf({ v }) {
   const pct = Math.round(v * 100)
   const col = pct >= 80 ? 'var(--green)' : pct >= 70 ? 'var(--amber)' : 'var(--red)'
-  return <span className="conf" style={{ color: col }}><span className="ring" style={{ background: `conic-gradient(${col} ${pct * 3.6}deg, rgba(235,235,255,.1) 0)` }} />{pct}%</span>
+  return <span className="conf" style={{ color: col }}><span className="ring" style={{ background: `conic-gradient(${col} ${pct * 3.6}deg, rgba(var(--ink), .1) 0)` }} />{pct}%</span>
 }
 
 const FEED_ICON = { merge: GitMerge, route: Route, notify: Bell, review: Flag, priority: ArrowUpRight, sync: RefreshCcw, escalate: ShieldAlert, storm: Snowflake, plan: MapIcon, proposal: Lightbulb, nudge: Bell, accept: UserCheck, schedule: CalendarCheck, start: Wrench, resolve: CheckCircle2, undo: Undo2, rules: SlidersHorizontal, fleet: Truck, approve: FileCheck2, reject: Ban, override: Hand, reroute: Route, unmerge: Split, learn: BrainCircuit, send: Send, confirm: BadgeCheck, reopen: RotateCw }
@@ -161,7 +161,7 @@ export function HealthRing({ value, size = 160, stroke = 12, label = 'City healt
   return (
     <div className="ring-wrap" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(235,235,255,.08)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(var(--ink), .08)" strokeWidth={stroke} />
         <circle className="ringarc" cx={size / 2} cy={size / 2} r={r} fill="none" stroke={healthColor(value)} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - v / 100)} style={{ filter: `drop-shadow(0 0 8px ${healthColor(value)})` }} />
       </svg>
       <div className="rv"><b style={{ fontSize: size * 0.24 }}><Num value={value} /></b><span>{label}</span>{sub && <span style={{ display: 'block' }}>{sub}</span>}</div>

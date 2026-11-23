@@ -32,7 +32,7 @@ export default function Dept({ sub, id }) {
 }
 
 const COLS = [
-  ['new', 'New from the AI', 'Sorted, merged and ranked. Accept or reroute.'],
+  ['new', 'From the AI', 'Sorted, merged, ranked. Accept or reroute.'],
   ['accepted', 'Accepted', 'Book a crew and a date.'],
   ['scheduled', 'Scheduled', 'Crew and date set. Residents told.'],
   ['in_progress', 'Crew working', 'On site. Close out with a photo.'],
@@ -104,7 +104,7 @@ function QCard({ q, p, s, i, onWhy }) {
       </div>
       {q.nearby && <div className="tiny" style={{ marginTop: 8, color: 'var(--amber)' }}><MapPin size={11} style={{ verticalAlign: -1 }} /> Near {q.nearby}</div>}
       <div className="row" style={{ marginTop: 10, paddingTop: 9, borderTop: '1px solid var(--line)', gap: 6 }} onClick={e => e.stopPropagation()}>
-        <span className="tiny muted" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={eta.text}><Clock size={11} style={{ verticalAlign: -1 }} /> {eta.short}{crew ? ` · ${crew.name.replace('Public Works ', '')}` : ''}</span>
+        <span className="tiny muted" style={{ flex: 1, whiteSpace: 'nowrap' }} title={eta.text}><Clock size={11} style={{ verticalAlign: -1 }} /> {eta.short}</span>
         {q.status === 'new' && <button className="btn sm primary" onClick={() => accept(q.id)}><UserCheck size={13} />Accept</button>}
         {q.status === 'accepted' && <button className="btn sm" onClick={() => navigate(`/dept/request/${q.id}`)}><CalendarCheck size={13} />Schedule</button>}
         {['scheduled', 'in_progress'].includes(q.status) && q.category !== 'snow' && <button className="btn sm" onClick={() => crewFix(q.id, crew?.name || 'Public Works crew 2')}><Camera size={13} />Fixed</button>}

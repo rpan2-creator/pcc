@@ -1,3 +1,4 @@
+import { useTheme } from '../theme.js'
 import { useMemo, useState } from 'react'
 import { MAP_W, MAP_H, RIVER, DISTRICTS, STREETS, BRIDGES, LANDMARKS, PARKS, CATEGORIES, districtPolygon, riverY } from '../data/city.js'
 import { priorityOf, getState } from '../store.js'
@@ -9,7 +10,7 @@ const riverPath = (off = 0) => 'M' + RIVER.map(([x, y]) => `${x} ${y + off}`).jo
 function rng(seed) { let a = seed; return () => { a = (a * 1664525 + 1013904223) % 4294967296; return a / 4294967296 } }
 
 const DARK = { bg: '#09090B', block: '#101013', block2: '#131317', blockLine: '#18181D', minor: '#16161B', water: '#0C1220', waterEdge: '#1A2540', park: '#101511', label: '#5E5E6A', district: '#3A3A45', em: ['#26262F', '#CFCBEA'], art: ['#1D1D23', '#383842'], res: ['#16161B', '#2A2A31'] }
-const LIGHT = { bg: '#EEF0EC', block: '#E2E5E0', block2: '#DADED8', blockLine: '#D3D8D2', minor: '#FFFFFF', water: '#B8D8E8', waterEdge: '#A3CBDE', park: '#CFE6C3', label: '#7B8580', district: '#A5ADA8', em: ['#E7C36A', '#FBDC8E'], art: ['#CBD1CB', '#FFFFFF'], res: ['#D6DBD5', '#FFFFFF'] }
+const LIGHT = { bg: '#E8EBF1', block: '#DDE1E9', block2: '#D5DAE3', blockLine: '#CED4DE', minor: '#FFFFFF', water: '#BCD4EC', waterEdge: '#A6C4E4', park: '#D2E6D4', label: '#7A8292', district: '#A2A9B7', em: ['#C9CEDC', '#FFFFFF'], art: ['#CDD2DC', '#FFFFFF'], res: ['#D8DDE6', '#FFFFFF'] }
 
 function useBlocks() {
   return useMemo(() => {
@@ -33,10 +34,12 @@ function useBlocks() {
   }, [])
 }
 
-export default function CityMap({ requests = [], selected, onSelect, colorBy = 'priority', snow, now, height, legend = true, labels = true, aspect, theme = 'dark', flow = true, home }) {
+export default function CityMap({ requests = [], selected, onSelect, colorBy = 'priority', snow, now, height, legend = true, labels = true, aspect, theme: themeProp, flow = true, home }) {
   const [tip, setTip] = useState(null)
   const blocks = useBlocks()
   const s = getState()
+  const appTheme = useTheme()
+  const theme = themeProp || appTheme
   const P = theme === 'light' ? LIGHT : DARK
   const snowCol = r => { const hrs = (r.end - now) / 3600e3; return hrs <= 2 ? '#7BD88F' : hrs <= 5 ? '#FFC461' : '#FF7C69' }
   const tall = aspect === 'tall'

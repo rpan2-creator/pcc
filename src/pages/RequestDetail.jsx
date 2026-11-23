@@ -112,7 +112,7 @@ export default function RequestDetail({ id, role }) {
               {[...p.factors].sort((a, b) => b.contrib - a.contrib).slice(0, 3).map(f => (
                 <div key={f.key} className="row small" style={{ padding: '5px 0', gap: 10 }}>
                   <span style={{ width: 118, color: 'var(--tx2)' }}>{f.label}</span>
-                  <span style={{ flex: 1, height: 6, borderRadius: 9, background: 'rgba(235,235,255,.08)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${f.value}%`, background: 'var(--mint)' }} /></span>
+                  <span style={{ flex: 1, height: 6, borderRadius: 9, background: 'rgba(var(--ink), .08)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${f.value}%`, background: 'var(--mint)' }} /></span>
                   <span className="mono" style={{ width: 26, textAlign: 'right', fontWeight: 650 }}>+{f.contrib.toFixed(0)}</span>
                 </div>
               ))}

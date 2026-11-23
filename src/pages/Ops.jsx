@@ -78,13 +78,17 @@ function Command({ s }) {
         <Kpi icon={Users} l="Staff hours saved" v={k.hours} d="sorting, routing, replying" agent />
       </div>
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.75fr) minmax(300px, 1fr)', alignItems: 'start' }}>
+        <div className="grid">
         <div className="card" style={{ overflow: 'hidden' }}>
-          <div className="cardhead"><h3>Live city map</h3><span className="sub"><Num value={shown.length} /> open</span>
-            <span className="right hscrollw">
-              <div className="seg">{[['all', 'All']].concat(Object.entries(DOMAINS).map(([k, d]) => [k, d.label.split(' ')[0].replace('&', '')])).map(([k2, l]) => <button key={k2} className={dom === k2 ? 'on' : ''} onClick={() => setDom(k2)}>{l}</button>)}</div>
-            </span>
+          <div className="cardhead"><h3>Live city map</h3><span className="sub"><Num value={shown.length} /> open</span></div>
+          <div className="row" style={{ gap: 6, padding: '10px 14px 0', overflowX: 'auto', scrollbarWidth: 'none' }}>
+            {[['all', 'All', null]].concat(Object.entries(DOMAINS).map(([k, d]) => [k, d.label, d.color])).map(([k2, l, c]) => (
+              <button key={k2} className="chip" style={{ border: 0, cursor: 'pointer', whiteSpace: 'nowrap', flex: 'none', ...(dom === k2 ? { background: 'var(--tx)', color: 'var(--bg)' } : null) }} onClick={() => setDom(k2)}>{c && <i style={{ width: 7, height: 7, borderRadius: 2, background: c }} />}{l}</button>
+            ))}
           </div>
           <div style={{ padding: 10 }}><CityMap requests={shown} onSelect={id => navigate(`/ops/requests/${id}`)} now={s.now} /></div>
+        </div>
+        <DeptLoad s={s} />
         </div>
         <div className="grid">
           <Link to="/ops/health" className="card spot lift" style={{ padding: 18, display: 'flex', gap: 18, alignItems: 'center' }}>
@@ -117,6 +121,30 @@ function Command({ s }) {
   )
 }
 
+function DeptLoad({ s }) {
+  const rows = Object.entries(DEPARTMENTS).map(([k, d]) => {
+    const open = s.requests.filter(q => q.dept === k && isOpen(q))
+    const late = open.filter(q => s.now - q.createdAt > CATEGORIES[q.category].target * D).length
+    const crews = s.crews.filter(c => c.dept === k)
+    return { k, d, open: open.length, late, free: crews.filter(c => c.status === 'available').length, crews: crews.length }
+  })
+  const max = Math.max(...rows.map(r => r.open))
+  return (
+    <div className="card">
+      <div className="cardhead"><h3>Workload by department</h3><span className="sub">open requests · crews free</span></div>
+      <div style={{ padding: '8px 18px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 28 }}>
+        {rows.map(r => (
+          <div key={r.k} style={{ padding: '8px 0' }}>
+            <div className="row small" style={{ marginBottom: 6, gap: 8 }}><b style={{ flex: 1, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.d.name}</b><span className="mono" style={{ fontWeight: 700 }}>{r.open}</span></div>
+            <div className="hbar"><i style={{ width: `${(r.open / max) * 100}%`, background: r.late ? 'var(--amber)' : 'var(--mint)' }} /></div>
+            <div className="tiny muted" style={{ marginTop: 5 }}>{r.late > 0 ? <span style={{ color: 'var(--red)' }}>{r.late} late · </span> : null}{r.free} of {r.crews} crews free</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function Kpi({ icon: I, l, v, d, tone, agent, dec = 0, suffix = '' }) {
   return (
     <div className={`card kpi spot ${agent ? 'agentk' : ''}`}>
@@ -129,7 +157,7 @@ function Kpi({ icon: I, l, v, d, tone, agent, dec = 0, suffix = '' }) {
 
 function DecisionRow({ icon, title, sub, to, warn }) {
   return (
-    <Link to={to} className="row" style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)', gap: 12, alignItems: 'flex-start', transition: 'background .15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(235,235,255,.03)'} onMouseLeave={e => e.currentTarget.style.background = ''}>
+    <Link to={to} className="row" style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)', gap: 12, alignItems: 'flex-start', transition: 'background .15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(var(--ink), .03)'} onMouseLeave={e => e.currentTarget.style.background = ''}>
       <span className="agentmark sm" style={warn ? { background: 'var(--amber)', boxShadow: 'none' } : null}>{icon}</span>
       <span style={{ flex: 1 }}><b className="small" style={{ fontWeight: 600, display: 'block', lineHeight: 1.4 }}>{title}</b><span className="tiny muted">{sub}</span></span>
       <ArrowRight size={14} style={{ color: 'var(--tx3)', marginTop: 3 }} />
@@ -229,7 +257,7 @@ function ProposalCard({ p, s }) {
   const rows = [...p.diff].sort((a, b) => (a.after - b.after))
   const pending = p.status === 'pending'
   return (
-    <div className="card" style={pending ? { borderColor: 'rgba(155,140,255,.35)', boxShadow: '0 0 40px -20px var(--mintglow)' } : null}>
+    <div className="card" style={pending ? { borderColor: 'rgba(var(--acc), .35)', boxShadow: '0 0 40px -20px var(--mintglow)' } : null}>
       <div className="cardhead">
         <AgentMark size="sm" /><h3>{p.title}</h3>
         <span className="right">{pending ? <span className="pill agent"><span className="dot" />Waiting for your approval</span> : <span className={`pill ${p.status === 'approved' ? 'ok' : ''}`}>{p.status === 'approved' ? `Approved by ${p.decidedBy}` : `Rejected by ${p.decidedBy}`}</span>}</span>
@@ -239,7 +267,7 @@ function ProposalCard({ p, s }) {
         <div className="row" style={{ gap: 8, marginTop: 12, flexWrap: 'wrap' }}>{p.checks.map((c, i) => <span key={i} className="pill ok" style={{ height: 26 }}><Check size={13} />{c.text}</span>)}</div>
         <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)', marginTop: 18, gap: 24 }}>
           <div>
-            <div className="row small" style={{ marginBottom: 10 }}><b>When each street will be plowed</b><span className="spacer" /><span className="row tiny muted" style={{ gap: 10 }}><span className="row" style={{ gap: 4 }}><i style={{ width: 10, height: 3, background: 'rgba(235,235,255,.25)', borderRadius: 2 }} />current</span><span className="row" style={{ gap: 4 }}><i style={{ width: 10, height: 3, background: 'var(--mint)', borderRadius: 2 }} />proposed</span></span></div>
+            <div className="row small" style={{ marginBottom: 10 }}><b>When each street will be plowed</b><span className="spacer" /><span className="row tiny muted" style={{ gap: 10 }}><span className="row" style={{ gap: 4 }}><i style={{ width: 10, height: 3, background: 'rgba(var(--ink), .25)', borderRadius: 2 }} />current</span><span className="row" style={{ gap: 4 }}><i style={{ width: 10, height: 3, background: 'var(--mint)', borderRadius: 2 }} />proposed</span></span></div>
             {rows.map((d, i) => {
               const b = (d.before - p.at) / H, a = (d.after - p.at) / H
               const late = d.delta > 0.25
@@ -247,7 +275,7 @@ function ProposalCard({ p, s }) {
                 <div key={d.street} className="row rowin" style={{ gap: 10, padding: '3px 0', animationDelay: `${i * 30}ms` }}>
                   <span className="small" style={{ width: 118, fontWeight: late ? 650 : 500, color: late ? 'var(--tx)' : 'var(--tx2)' }}>{d.name}</span>
                   <span style={{ flex: 1, position: 'relative', height: 14 }}>
-                    <i style={{ position: 'absolute', top: 2, left: 0, height: 3, borderRadius: 2, width: `${(b / max) * 100}%`, background: 'rgba(235,235,255,.22)' }} />
+                    <i style={{ position: 'absolute', top: 2, left: 0, height: 3, borderRadius: 2, width: `${(b / max) * 100}%`, background: 'rgba(var(--ink), .22)' }} />
                     <i style={{ position: 'absolute', top: 8, left: 0, height: 3, borderRadius: 2, width: `${(a / max) * 100}%`, background: late ? 'var(--amber)' : 'var(--mint)' }} />
                   </span>
                   <span className="tiny mono" style={{ width: 60, textAlign: 'right', color: late ? 'var(--amber)' : 'var(--tx3)', fontWeight: 700 }}>{late ? `+${d.delta.toFixed(1)} h` : 'same'}</span>
@@ -293,8 +321,8 @@ function Requests({ s }) {
     <div className="page" style={{ maxWidth: 1400 }}>
       <div className="pagehead"><div><div className="eyebrow"><ListChecks size={13} />All requests</div><h1>Every problem residents reported</h1><p><Num value={rows.length} /> shown, most urgent first.</p></div></div>
       <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-        <button className={`chip`} style={f.domain === 'all' ? { background: 'var(--mintbg)', color: 'var(--mint)' } : null} onClick={() => set('domain', 'all')}>All types</button>
-        {Object.entries(DOMAINS).map(([k, d]) => <button key={k} className="chip" style={{ border: 0, cursor: 'pointer', ...(f.domain === k ? { background: 'var(--mintbg)', color: 'var(--mint)' } : null) }} onClick={() => set('domain', k)}><i style={{ width: 8, height: 8, borderRadius: 3, background: d.color }} />{d.label}</button>)}
+        <button className={`chip`} style={{ border: 0, cursor: 'pointer', ...(f.domain === 'all' ? { background: 'var(--tx)', color: 'var(--bg)' } : null) }} onClick={() => set('domain', 'all')}>All types</button>
+        {Object.entries(DOMAINS).map(([k, d]) => <button key={k} className="chip" style={{ border: 0, cursor: 'pointer', ...(f.domain === k ? { background: 'var(--tx)', color: 'var(--bg)' } : null) }} onClick={() => set('domain', k)}><i style={{ width: 8, height: 8, borderRadius: 3, background: d.color }} />{d.label}</button>)}
       </div>
       <div className="card">
         <div className="cardhead" style={{ gap: 8, flexWrap: 'wrap' }}>
@@ -358,7 +386,7 @@ function Settings({ s }) {
               {ranked.slice(0, 12).map(({ q, p }, i) => {
                 const d = base.current.indexOf(q.id) - i
                 return (
-                  <tr key={q.id} style={{ transition: 'background .4s', background: d ? 'rgba(155,140,255,.04)' : undefined }}>
+                  <tr key={q.id} style={{ transition: 'background .4s', background: d ? 'rgba(var(--acc), .04)' : undefined }}>
                     <td className="mono" style={{ fontWeight: 750 }}>{i + 1}</td>
                     <td><div className="row" style={{ gap: 9 }}><CatIcon c={q.category} size={26} /><div style={{ minWidth: 0 }}><b className="small">{CATEGORIES[q.category].label}</b><div className="tiny muted">{q.address} · {districtName(q.district)}</div></div></div></td>
                     <td><Priority p={p} /></td>
@@ -384,11 +412,11 @@ function HistoryPage({ s }) {
       </div>
       <div className="card">
         <table className="table">
-          <thead><tr><th style={{ width: 130 }}>When</th><th style={{ width: 160 }}>Who</th><th>What happened</th><th>Why</th><th style={{ width: 100 }} /></tr></thead>
+          <thead><tr><th style={{ width: 96 }}>When</th><th style={{ width: 140 }}>Who</th><th style={{ width: '42%' }}>What happened</th><th>Why</th><th style={{ width: 90 }} /></tr></thead>
           <tbody>
             {rows.slice(0, 150).map((a, i) => (
               <tr key={a.id} className="rowin" style={{ opacity: a.undone ? .5 : 1, animationDelay: `${Math.min(i, 15) * 20}ms` }}>
-                <td className="small muted">{dayTime(a.at)}</td>
+                <td className="tiny muted">{dayTime(a.at)}</td>
                 <td className="small">{a.actor === 'agent' ? <span className="row" style={{ gap: 7 }}><AgentMark size="sm" />PCC agent</span> : <span className="row" style={{ gap: 7, fontWeight: 600 }}><span className="agentmark sm" style={{ background: 'var(--bluebg)', color: 'var(--blue)', boxShadow: 'none' }}><Users size={11} /></span>{a.actor}</span>}</td>
                 <td className="small" style={{ fontWeight: 550, textDecoration: a.undone ? 'line-through' : 'none' }}><span className="row" style={{ gap: 7 }}><span style={{ color: 'var(--tx3)' }}><FeedIcon kind={a.kind} size={13} /></span>{a.text}</span>{a.tool && <span className="toolchip" style={{ marginTop: 5 }}>{a.tool}</span>}</td>
                 <td className="small muted">{a.why}</td>

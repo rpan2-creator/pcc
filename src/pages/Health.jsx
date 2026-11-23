@@ -21,7 +21,7 @@ export default function Health({ s, base = '/ops/requests/', title = 'City healt
   const maxWait = Math.max(...h.districts.map(d => d.wait))
   const lagging = h.districts.filter(d => d.wait - avgWait > s.rules.equityGap)
   const hot = open.map(q => ({ q, p: priorityOf(q, s) })).filter(x => x.q.status !== 'review').sort((a, b) => b.p.score - a.p.score).slice(0, 5)
-  const w = 520, hgt = 90, min = Math.floor((Math.min(...trend) - 6) / 10) * 10, max = Math.ceil((Math.max(...trend) + 4) / 10) * 10
+  const w = 520, hgt = 170, min = Math.floor((Math.min(...trend) - 6) / 10) * 10, max = Math.ceil((Math.max(...trend) + 4) / 10) * 10
   const pts = trend.map((v, i) => [i * (w / (trend.length - 1)), hgt - ((v - min) / (max - min)) * hgt])
   const path = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')
   return (
@@ -36,9 +36,9 @@ export default function Health({ s, base = '/ops/requests/', title = 'City healt
         </div>
         <div className="card" style={{ padding: 20 }}>
           <div className="row" style={{ marginBottom: 6 }}><b>Last 12 weeks</b><span className="spacer" /><span className="tiny muted">weekly index; this week is live</span></div>
-          <svg viewBox={`-12 -10 ${w + 40} ${hgt + 30}`} style={{ width: '100%', height: 130 }}>
+          <svg viewBox={`-12 -10 ${w + 40} ${hgt + 30}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
             <defs><linearGradient id="hg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="var(--mint)" stopOpacity=".28" /><stop offset="1" stopColor="var(--mint)" stopOpacity="0" /></linearGradient></defs>
-            {[min + 10, max - 10].filter((v, i, a) => a.indexOf(v) === i && v > min && v < max).map(v => <g key={v}><line x1="0" x2={w} y1={hgt - ((v - min) / (max - min)) * hgt} y2={hgt - ((v - min) / (max - min)) * hgt} stroke="rgba(235,235,255,.07)" /><text x={w + 4} y={hgt - ((v - min) / (max - min)) * hgt + 4} fontSize="10" fill="var(--tx3)">{v}</text></g>)}
+            {[min + 10, max - 10].filter((v, i, a) => a.indexOf(v) === i && v > min && v < max).map(v => <g key={v}><line x1="0" x2={w} y1={hgt - ((v - min) / (max - min)) * hgt} y2={hgt - ((v - min) / (max - min)) * hgt} stroke="rgba(var(--ink), .07)" /><text x={w + 4} y={hgt - ((v - min) / (max - min)) * hgt + 4} fontSize="10" fill="var(--tx3)">{v}</text></g>)}
             <path d={`${path} L ${w} ${hgt} L 0 ${hgt} Z`} fill="url(#hg)" />
             <path d={path} fill="none" stroke="var(--mint)" strokeWidth="2.2" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 6px var(--mintglow))' }} />
             <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="5" fill="var(--mint)"><animate attributeName="r" values="5;8;5" dur="2s" repeatCount="indefinite" /></circle>
@@ -51,14 +51,14 @@ export default function Health({ s, base = '/ops/requests/', title = 'City healt
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginBottom: 14 }}>
         {h.domains.map((d, i) => {
           const cats = Object.entries(CATEGORIES).filter(([, c]) => c.domain === d.key)
           return (
             <div key={d.key} className="card spot lift rowin" style={{ padding: 16, animationDelay: `${i * 50}ms` }}>
-              <div className="row" style={{ gap: 8 }}><i style={{ width: 10, height: 10, borderRadius: 3, background: d.color }} /><b className="small" style={{ flex: 1 }}>{d.label}</b><b className="mono" style={{ fontSize: 22, color: healthColor(d.score), letterSpacing: '-.03em' }}><Num value={d.score} /></b></div>
+              <div className="row" style={{ gap: 8 }}><i style={{ width: 10, height: 10, borderRadius: 3, background: d.color }} /><b className="small" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={d.label}>{d.label}</b><b className="mono" style={{ fontSize: 22, color: healthColor(d.score), letterSpacing: '-.03em' }}><Num value={d.score} /></b></div>
               <div className="hbar" style={{ margin: '12px 0' }}><i style={{ width: `${d.score}%`, background: healthColor(d.score) }} /></div>
-              <div className="row tiny muted" style={{ gap: 12 }}><span><b style={{ color: 'var(--tx)' }}>{d.open}</b> open</span><span><b style={{ color: d.overdue ? 'var(--red)' : 'var(--tx)' }}>{d.overdue}</b> late</span><span><b style={{ color: 'var(--tx)' }}>{d.onTime}%</b> fixed on time</span></div>
+              <div className="tiny muted"><b style={{ color: 'var(--tx)' }}>{d.open}</b> open · <b style={{ color: d.overdue ? 'var(--red)' : 'var(--tx)' }}>{d.overdue}</b> late · <b style={{ color: 'var(--tx)' }}>{d.onTime}%</b> on time</div>
               <div className="row" style={{ gap: 4, marginTop: 12, flexWrap: 'wrap' }}>{cats.map(([k]) => <span key={k} title={CATEGORIES[k].label}><CatIcon c={k} size={22} /></span>)}</div>
             </div>
           )

@@ -142,7 +142,7 @@ function Home({ s }) {
   const [qq, setQ] = useState('')
   const near = s.requests.filter(q => isOpen(q) && q.status !== 'review').filter(q => dom === 'all' || CATEGORIES[q.category].domain === dom)
     .filter(q => !qq || (q.address + CATEGORIES[q.category].label).toLowerCase().includes(qq.toLowerCase()))
-    .sort((a, b) => distM(a) - distM(b))
+    .sort((a, b) => (distM(a) - (a.upvotes - (a.downvotes || 0)) * 6) - (distM(b) - (b.upvotes - (b.downvotes || 0)) * 6))
   const elmSnow = s.storm && s.requests.find(q => q.category === 'snow' && q.street === 'elm' && isOpen(q))
   return (
     <>

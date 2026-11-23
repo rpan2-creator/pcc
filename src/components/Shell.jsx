@@ -5,6 +5,8 @@ import { navigate, Link, usePath } from '../router.jsx'
 import { ROLES, Avatar, AgentMark, FeedIcon } from './ui.jsx'
 import { time, day } from '../format.js'
 import { GUIDE } from '../guide.js'
+import { useTheme, toggleTheme } from '../theme.js'
+import { Sun, Moon } from 'lucide-react'
 
 export function Logo({ size = 30 }) {
   return (
@@ -65,6 +67,11 @@ export function RoleSwitcher({ role }) {
   )
 }
 
+export function ThemeToggle() {
+  const t = useTheme()
+  return <button className="themetoggle" onClick={toggleTheme} aria-label={t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} title={t === 'dark' ? 'Light mode' : 'Dark mode'}>{t === 'dark' ? <Sun key="s" size={16} /> : <Moon key="m" size={16} />}</button>
+}
+
 export function TopBar({ role }) {
   const now = useStore(s => s.now)
   const storm = useStore(s => s.storm)
@@ -76,6 +83,7 @@ export function TopBar({ role }) {
       <div className="spacer" />
       {storm && <span className="pill blue" style={{ height: 28 }}><CloudSnow size={13} /> Snow emergency</span>}
       <span className="clock"><Clock3 size={14} />{day(now)} · {time(now)}</span>
+      <ThemeToggle />
       <RoleSwitcher role={role} />
     </header>
   )

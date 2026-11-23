@@ -26,7 +26,7 @@ export default function Systems() {
           <div className="row" style={{ gap: 0, justifyContent: 'space-between', alignItems: 'stretch' }}>
             {['Residents', 'PCC agent', 'City systems', 'Departments'].map((x, i) => (
               <div key={x} className="row" style={{ flex: 1, gap: 0 }}>
-                <div className="card" style={{ flex: 1, padding: '14px 16px', textAlign: 'center', background: i === 1 ? 'var(--mintbg)' : 'var(--s2)', borderColor: i === 1 ? 'rgba(155,140,255,.3)' : undefined }}>
+                <div className="card" style={{ flex: 1, padding: '14px 16px', textAlign: 'center', background: i === 1 ? 'var(--mintbg)' : 'var(--s2)', borderColor: i === 1 ? 'rgba(var(--acc), .3)' : undefined }}>
                   {i === 1 && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}><AgentMark /></div>}
                   <b>{x}</b>
                   <div className="tiny muted" style={{ marginTop: 3 }}>{['report, upvote, follow', 'merge, route, prioritize, follow up', 'tickets, assets, fleet, messages', 'accept, schedule, fix'][i]}</div>
