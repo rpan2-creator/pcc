@@ -240,8 +240,8 @@ function ReviewCard({ q, s }) {
           <p className="small dim" style={{ lineHeight: 1.55 }}>{q.reviewNote}</p>
           <div className="col" style={{ gap: 8, marginTop: 14 }}>
             {opts.map(([v, l, best]) => (
-              <button key={v} className={`btn ${best ? 'primary' : ''}`} style={{ justifyContent: 'flex-start' }} onClick={() => decideReview(q.id, v)}>
-                {best ? <Sparkles size={14} /> : <ArrowRight size={14} />}<span style={{ flex: 1, textAlign: 'left' }}>{l}</span>{best && <span style={{ fontSize: 11, opacity: .75 }}>AI's best guess</span>}
+              <button key={v} className={`btn ${best ? 'primary' : ''}`} style={{ justifyContent: 'flex-start', height: 'auto', minHeight: 38, padding: '8px 16px', whiteSpace: 'normal', lineHeight: 1.3 }} onClick={() => decideReview(q.id, v)}>
+                {best ? <Sparkles size={14} /> : <ArrowRight size={14} />}<span style={{ flex: 1, textAlign: 'left' }}>{l}</span>{best && <span style={{ fontSize: 10.5, opacity: .75, whiteSpace: 'nowrap', flex: 'none' }}>AI's pick</span>}
               </button>
             ))}
           </div>
