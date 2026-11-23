@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from 'react'
 import { makeSeed } from './data/seed.js'
-import { CATEGORIES, DEPARTMENTS, STREETS, pointOnStreet, districtAt, districtName } from './data/city.js'
+import { CATEGORIES, DEPARTMENTS, STREETS, DOMAINS, DISTRICTS, pointOnStreet, districtAt, districtName } from './data/city.js'
 
-const KEY = 'pcc-state-v4'
+const KEY = 'pcc-state-v7'
 const H = 3600e3, D = 24 * H
 
 let state = load()
@@ -11,7 +11,7 @@ const subs = new Set()
 function load() {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) { const s = JSON.parse(raw); if (s.version === 4) return { ...s, running: null, toasts: [] } }
+    if (raw) { const s = JSON.parse(raw); if (s.version === 7) return { ...s, running: null, toasts: [] } }
   } catch {}
   return makeSeed()
 }
@@ -58,14 +58,14 @@ export function priorityOf(q, s = state) {
   const free = crews.filter(c => c.status === 'available').length
   const f = {
     safety: Math.min(100, cat.risk + (q.nearby ? 14 : 0)),
-    community: Math.min(100, q.upvotes * 3 + q.reports.length * 4),
+    community: Math.max(0, Math.min(100, (q.upvotes - (q.downvotes || 0) * 2) * 3 + q.reports.length * 4)),
     age: Math.min(100, Math.round((ageDays / cat.target) * 100)),
     resources: Math.round(((free + 1) / (crews.length + 1)) * 100),
     equity: EQUITY[q.district] ?? 50,
   }
   const notes = {
     safety: `${cat.label}${q.nearby ? ` near ${q.nearby}` : ''}`,
-    community: `${q.upvotes} upvotes from ${q.reports.length} report${q.reports.length === 1 ? '' : 's'}`,
+    community: `${q.upvotes} upvotes${q.downvotes ? `, ${q.downvotes} not urgent` : ''}, ${q.reports.length} report${q.reports.length === 1 ? '' : 's'}`,
     age: `${ageDays.toFixed(1)} days open of a ${cat.target}-day target`,
     resources: `${free} of ${crews.length} ${DEPARTMENTS[q.dept].short} crews free`,
     equity: EQ_NOTE[q.district],
@@ -136,8 +136,17 @@ export function dismissToast(id) { update(s => { s.toasts = s.toasts.filter(t =>
 export function upvote(id) {
   update(s => {
     const q = req(s, id)
+    if (s.downvoted.includes(id)) { s.downvoted = s.downvoted.filter(x => x !== id); q.downvotes-- }
     if (s.upvoted.includes(id)) { s.upvoted = s.upvoted.filter(x => x !== id); q.upvotes-- }
     else { s.upvoted.push(id); q.upvotes++; if (!s.following.includes(id)) s.following.push(id) }
+  })
+}
+export function downvote(id) {
+  update(s => {
+    const q = req(s, id)
+    if (s.upvoted.includes(id)) { s.upvoted = s.upvoted.filter(x => x !== id); q.upvotes-- }
+    if (s.downvoted.includes(id)) { s.downvoted = s.downvoted.filter(x => x !== id); q.downvotes-- }
+    else { s.downvoted.push(id); q.downvotes = (q.downvotes || 0) + 1 }
   })
 }
 export function follow(id) {
@@ -313,7 +322,7 @@ export function start(id, actor = 'Marcus Lee') {
 export function resolve(id, actor = 'Marcus Lee', note = '') {
   update(s => {
     const q = req(s, id); const before = snap(s, [id])
-    q.status = 'resolved'; q.resolvedAt = s.now; q.afterPhoto = true; q.fixNote = note || 'Cut out the damaged area, filled and compacted hot asphalt.'
+    q.status = 'resolved'; q.resolvedAt = s.now; q.afterPhoto = true; q.fixNote = note || (q.category === 'pothole' ? 'Cut out the damaged area, filled and compacted hot asphalt.' : 'Repaired and inspected on site.')
     const crew = s.crews.find(c => c.on === id); if (crew) { crew.status = 'available'; delete crew.on }
     tl(q, s.now, `Fixed, with an after photo: ${q.fixNote}`, actor)
     log(s, { actor, kind: 'resolve', text: `${actor} marked ${id} fixed with an after photo`, why: q.fixNote, reqId: id, before })
@@ -321,16 +330,16 @@ export function resolve(id, actor = 'Marcus Lee', note = '') {
     log(s, { kind: 'notify', text: `Sent the after photo to ${n + q.reports.length - 1} residents and asked them to confirm`, why: 'A request is only closed when a resident confirms, or after 3 days with no reply.', reqId: id, tool: 'SMS / email' })
   })
 }
-export function crewFix(id, actor = 'Streets crew 2') {
+export function crewFix(id, actor = 'Public Works crew 2') {
   update(s => {
     const q = req(s, id)
-    if (q.scheduledFor && q.scheduledFor > s.now) s.now = q.scheduledFor
-    s.now += 40 * 60e3
+    if (q.scheduledFor && q.scheduledFor > s.now) moveClock(s, q.scheduledFor - s.now)
+    moveClock(s, 40 * 60e3)
     q.status = 'in_progress'
     tl(q, s.now, `${actor} checked in on site`, actor)
     log(s, { actor, kind: 'start', text: `${actor} checked in at ${q.address}`, why: 'GPS check-in from the crew app.', reqId: id, tool: 'Work order system' })
     notifyResidents(s, q, `A crew is working on ${id} (${q.address}) right now.`)
-    s.now += 55 * 60e3
+    moveClock(s, 55 * 60e3)
   })
   resolve(id, actor)
 }
@@ -356,12 +365,12 @@ export function confirmFix(id, ok) {
 // One shared description of where a request is in its life.
 export const STAGES = [
   { key: 'reported', label: 'Reported', who: 'Resident' },
-  { key: 'triaged', label: 'Sorted by agent', who: 'PCC agent' },
-  { key: 'accepted', label: 'Accepted by department', who: 'Department' },
-  { key: 'scheduled', label: 'Crew scheduled', who: 'Department' },
-  { key: 'onsite', label: 'Crew on site', who: 'Crew' },
-  { key: 'fixed', label: 'Fixed with photo', who: 'Crew' },
-  { key: 'confirmed', label: 'Confirmed by resident', who: 'Resident' },
+  { key: 'triaged', label: 'Sorted by AI', who: 'PCC agent' },
+  { key: 'accepted', label: 'Accepted', who: 'Department' },
+  { key: 'scheduled', label: 'Scheduled', who: 'Department' },
+  { key: 'onsite', label: 'Crew working', who: 'Crew' },
+  { key: 'fixed', label: 'Fixed', who: 'Crew' },
+  { key: 'confirmed', label: 'Confirmed', who: 'Resident' },
 ]
 export const STAGE_IX = { review: 1, new: 2, accepted: 3, scheduled: 4, in_progress: 5, resolved: 6, closed: 7, merged: 1 }
 export function reroute(id, dept, note, actor = 'Marcus Lee') {
@@ -434,7 +443,7 @@ export function triggerStorm() {
         s.reports.push({ id: rid, reqId: id, residentId: res.id, residentName: res.name, text: ['Street still not plowed, cars stuck', 'Snow piled up, buses can\'t get through', 'Side street completely blocked by snow'][k % 3], channel: k % 4 === 3 ? 'Phone (311)' : 'App', at: s.now - k * 3 * 60e3 })
       }
       total += n
-      s.requests.push({ id, category: 'snow', dept: 'streets', street: st, address: STREETS.find(z => z.id === st).name, x: Math.round(x), y: Math.round(y), district: districtAt(x, y), status: 'accepted', reports: ids, upvotes: n + 3, createdAt: s.now - 40 * 60e3, confidence: 0.98, flags: ['storm'], timeline: [], override: null })
+      s.requests.push({ id, category: 'snow', dept: 'publicworks', street: st, address: STREETS.find(z => z.id === st).name, x: Math.round(x), y: Math.round(y), district: districtAt(x, y), status: 'accepted', reports: ids, upvotes: n + 3, createdAt: s.now - 40 * 60e3, confidence: 0.98, flags: ['storm'], timeline: [], override: null })
     })
     if (!s.following.includes(s.requests.find(q => q.street === 'elm' && q.category === 'snow').id)) s.following.push(s.requests.find(q => q.street === 'elm' && q.category === 'snow').id)
     s.storm.plan = planRoutes(s, s.plows.filter(p => p.status !== 'broken').length, s.now)
@@ -442,7 +451,7 @@ export function triggerStorm() {
     log(s, { kind: 'plan', text: `Built a plow plan: ${s.storm.plan.routes.length} routes for ${s.storm.plan.plows} plows`, why: 'Emergency routes and the hospital corridor first, then arterials, then residential streets with the most reports. Within the same class, districts that waited longest this year go first.', tool: 'Fleet tracker' })
     log(s, { kind: 'notify', text: `Posted plow times for every street on the public map`, why: 'Residents can search their street instead of calling 311.', tool: 'Public map' })
     s.stats.merged += total
-    toast(s, 'Snow emergency: agent built a plow plan for 8 plows', 'agent', '/dept/snow')
+    toast(s, 'Snow emergency: agent built a plow plan for 8 plows', 'agent', '/dept/winter')
   })
 }
 
@@ -472,7 +481,7 @@ export function breakPlows(n = 2) {
     })
     ready.slice(-n).forEach(p => log(s, { actor: 'Fleet tracker', kind: 'fleet', text: `${p.id} reported a hydraulic fault`, why: 'Status from the fleet tracker.' }))
     log(s, { kind: 'proposal', text: `Proposed a new plow plan for ${plan.plows} plows; waiting for approval`, why: `Losing ${n} plows pushes ${pushed.length} streets later. Changing every resident's time is a big change, so it needs a person to approve.`, tool: 'Fleet tracker' })
-    toast(s, `${n} plows down. The agent proposed a new route plan.`, 'warn', '/ops/proposals')
+    toast(s, `${n} plows down. The agent proposed a new route plan.`, 'warn', '/ops/decisions')
   })
 }
 
@@ -504,9 +513,26 @@ export function repairPlows() {
 }
 
 // ---------------- time ----------------
+const STORY = new Set(['REQ-1877', 'REQ-2041', 'REQ-2050', 'REQ-2056', 'REQ-2058', 'REQ-2060', 'REQ-2062', 'REQ-2064', 'REQ-2066'])
+// Demo clock: the story requests age as time moves. The rest of the city is a steady backlog
+// (old problems get fixed, new ones arrive at the same rate), so it moves with the clock.
+function moveClock(s, ms) {
+  s.now += ms
+  s.requests.forEach(q => {
+    if (STORY.has(q.id) || q.category === 'snow' || !isOpen(q) || s.following.includes(q.id)) return
+    q.createdAt += ms
+    if (q.scheduledFor) q.scheduledFor += ms
+    s.reports.forEach(r => { if (r.reqId === q.id) r.at += ms })
+  })
+  if (s.storm) s.requests.filter(q => q.category === 'snow' && isOpen(q)).forEach(q => {
+    const r = s.storm.plan.routes.find(x => x.street === q.street)
+    if (r && r.end <= s.now) { q.status = 'closed'; q.closedAt = r.end; tl(q, r.end, `Plowed by ${r.plow}`, 'Fleet tracker') }
+  })
+}
 export function advance(hours = 12) {
   update(s => {
-    s.now += hours * H
+    moveClock(s, hours * H)
+    let answered = 0
     s.requests.filter(q => ['new', 'accepted'].includes(q.status) && q.category !== 'snow').forEach(q => {
       const due = q.createdAt + CATEGORIES[q.category].target * D
       if (s.now > due && !q.flags.includes('nudged')) {
@@ -515,13 +541,19 @@ export function advance(hours = 12) {
         log(s, { kind: 'nudge', text: `Reminded ${DEPARTMENTS[q.dept].short} that ${q.id} is overdue`, why: `${CATEGORIES[q.category].label} target is ${CATEGORIES[q.category].target} days; it has been open ${((s.now - q.createdAt) / D).toFixed(1)}. First miss: a reminder to the department.`, reqId: q.id, tool: 'Work order system' })
         s.stats.nudges++
         if (q.id === 'REQ-1877') toast(s, `Agent reminded Parks: ${q.id} is overdue`, 'warn', `/ops/requests/${q.id}`)
+        else if (!STORY.has(q.id)) {
+          q.status = 'scheduled'; q.scheduledFor = s.now + (0.4 + (q.id.charCodeAt(7) % 3) * 0.3) * D
+          tl(q, s.now + 20 * 60e3, `${DEPARTMENTS[q.dept].short} scheduled it after the reminder`, DEPARTMENTS[q.dept].short)
+          answered++
+        }
       } else if (q.flags.includes('nudged') && !q.flags.includes('escalated') && s.now - q.nudgedAt >= 12 * H) {
         q.flags.push('escalated')
         tl(q, s.now, 'Escalated to the city coordination manager')
         log(s, { kind: 'escalate', text: `Escalated ${q.id} to Dana Reyes: still not scheduled after a reminder`, why: 'Second miss. The rule is: remind the department once, then escalate.', reqId: q.id })
-        if (q.id === 'REQ-1877') toast(s, `Agent escalated ${q.id} to the city manager`, 'warn', '/ops/review')
+        if (q.id === 'REQ-1877') toast(s, `Agent escalated ${q.id} to the city manager`, 'warn', '/ops/decisions')
       }
     })
+    if (answered) log(s, { kind: 'sync', text: `${answered} departments scheduled late requests after a reminder`, why: 'Most reminders are answered without escalation.', tool: 'Work order system' })
   })
 }
 
@@ -547,3 +579,29 @@ export function reset() {
   emit()
 }
 export function setGuided(g) { update(s => { s.guided = g }, { persist: false }) }
+
+
+// ---------------- city health ----------------
+// A 0-100 score per domain from live data: how much is overdue, how old open work is, how much is waiting.
+export function healthOf(s = state) {
+  const domains = Object.entries(DOMAINS).map(([key, d]) => {
+    const all = s.requests.filter(q => CATEGORIES[q.category].domain === key && q.status !== 'merged')
+    const open = all.filter(isOpen)
+    const overdue = open.filter(q => s.now - q.createdAt > CATEGORIES[q.category].target * D)
+    const lateWeight = overdue.reduce((a, q) => a + (['scheduled', 'in_progress'].includes(q.status) ? 0.35 : 1), 0)
+    const ageRatio = open.length ? open.reduce((a, q) => a + Math.min(2, (s.now - q.createdAt) / (CATEGORIES[q.category].target * D)), 0) / open.length : 0
+    const closed = all.filter(q => q.status === 'closed' && q.closedAt)
+    const onTime = closed.length ? closed.filter(q => q.closedAt - q.createdAt <= CATEGORIES[q.category].target * D).length / closed.length : 1
+    const score = Math.round(Math.max(20, Math.min(99, 100 - (lateWeight / Math.max(1, open.length)) * 40 - ageRatio * 22 - Math.min(14, open.length * 0.35) + (onTime - 0.7) * 20)))
+    return { key, ...d, score, open: open.length, overdue: overdue.length, onTime: Math.round(onTime * 100) }
+  })
+  const total = domains.reduce((a, d) => a + d.open + 4, 0)
+  const index = Math.round(domains.reduce((a, d) => a + d.score * (d.open + 4), 0) / total)
+  const districts = DISTRICTS.map(dd => {
+    const open = s.requests.filter(q => q.district === dd.id && isOpen(q))
+    const wait = open.length ? open.reduce((a, q) => a + (s.now - q.createdAt) / D, 0) / open.length : 0
+    return { id: dd.id, name: dd.name, open: open.length, wait }
+  })
+  return { index, domains, districts }
+}
+export const STATUS_LABEL = { review: 'Needs a decision', new: 'Waiting for department', accepted: 'Accepted', scheduled: 'Scheduled', in_progress: 'Crew working', resolved: 'Fixed, awaiting confirmation', closed: 'Closed', merged: 'Merged' }

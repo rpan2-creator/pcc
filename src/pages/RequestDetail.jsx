@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { ArrowLeft, MapPin, Users, ThumbsUp, Clock3, Sparkles, Split, Hand, Send, Route as RouteIcon, CalendarCheck, Wrench, CheckCircle2, UserCheck, Info, Pencil } from 'lucide-react'
+import { ArrowLeft, MapPin, Users, ThumbsUp, Clock3, Sparkles, Split, Hand, Send, Route as RouteIcon, CalendarCheck, Wrench, CheckCircle2, UserCheck, Info, Pencil, ArrowRight } from 'lucide-react'
 import { useStore, priorityOf, etaOf, accept, schedule, start, resolve, reroute, unmerge, overridePriority, editMessageAndSend } from '../store.js'
 import { EXTRA } from '../data/photos.js'
 import { CATEGORIES, DEPARTMENTS, districtName } from '../data/city.js'
-import { Priority, Status, Cat, Conf, WhyModal, Photo, AgentMark, LEVEL, Modal, ModalHead, Workflow, CatIcon } from '../components/ui.jsx'
+import { Priority, Status, Cat, Conf, WhyModal, Photo, AgentMark, LEVEL, Modal, ModalHead, Workflow, CatIcon, nextStepOf } from '../components/ui.jsx'
 import CityMap from '../components/CityMap.jsx'
 import { Link } from '../router.jsx'
 import { ago, dayTime, time } from '../format.js'
 
+export const FIXNOTE = { pothole: 'Cut out the damaged area, filled and compacted hot asphalt.', streetlight: 'Replaced the LED head and photocell; tested at dusk.', signal: 'Replaced the controller board; timing checked.', tree: 'Removed the fallen limb and cleared the sidewalk.', leak: 'Repaired the service line and restored pressure.', trash: 'Collected the missed pickup and logged the route gap.', dumping: 'Removed the dumped items; added the alley to patrols.', graffiti: 'Removed paint and applied anti-graffiti coating.', sidewalk: 'Ground down the lifted slab edge and marked it for replacement.', flood: 'Cleared the storm drain inlet.', heat: 'Inspector confirmed heat restored; landlord cited.' }
 export default function RequestDetail({ id, role }) {
   const s = useStore()
   const q = s.requests.find(x => x.id === id)
@@ -34,7 +35,7 @@ export default function RequestDetail({ id, role }) {
         <div>
           <div className="row" style={{ gap: 10, marginBottom: 6 }}><span className="id">{q.id}</span><Status s={q.status} />{escalated ? <span className="pill warn">Escalated to Dana</span> : nudged ? <span className="pill warn">Overdue · reminder sent</span> : null}{q.flags.includes('storm') && <span className="pill agent">Storm</span>}</div>
           <h1 className="row" style={{ gap: 12 }}><CatIcon c={q.category} size={36} />{cat.label} · {q.address}</h1>
-          <p className="row" style={{ gap: 14, marginTop: 8 }}>
+          <p className="row" style={{ gap: '6px 16px', marginTop: 8, flexWrap: 'wrap', whiteSpace: 'nowrap' }}>
             <span className="row" style={{ gap: 5 }}><MapPin size={14} />{districtName(q.district)}{q.nearby ? ` · near ${q.nearby}` : ''}</span>
             <span className="row" style={{ gap: 5 }}><Users size={14} />{q.reports.length} reports</span>
             <span className="row" style={{ gap: 5 }}><ThumbsUp size={14} />{q.upvotes} upvotes</span>
@@ -43,11 +44,18 @@ export default function RequestDetail({ id, role }) {
         </div>
       </div>
 
-      <div className="card" style={{ padding: '18px 10px 14px', marginBottom: 16 }}><Workflow q={q} /></div>
+      <div className="card" style={{ padding: '20px 10px 0', marginBottom: 16, overflow: 'hidden' }}>
+        <Workflow q={q} />
+        <div className="nextstep" key={q.status} style={{ margin: '18px 0 0', borderRadius: 0, borderWidth: '1px 0 0' }}>
+          <span className="ns-ic"><ArrowRight size={18} /></span>
+          <div style={{ flex: 1 }}><b>Next: {nextStepOf(q).who}</b><span>{nextStepOf(q).text}</span></div>
+          {q.status !== 'review' && q.status !== 'closed' && <div style={{ textAlign: 'right' }}><span>Residents see</span><b>{eta.text}</b></div>}
+        </div>
+      </div>
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.55fr) minmax(300px, 1fr)', alignItems: 'start' }}>
         <div className="grid">
           <div className="card">
-            <div className="cardhead"><AgentMark size="sm" /><h3>Agent summary</h3><span className="right"><Conf v={q.confidence} /><span className="muted small">confidence</span></span></div>
+            <div className="cardhead"><AgentMark size="sm" /><h3>What the AI understood</h3><span className="right row" style={{ gap: 6 }}><Conf v={q.confidence} /><span className="muted small">sure</span></span></div>
             <div style={{ padding: 18 }}>
               <p style={{ fontSize: 14.5, lineHeight: 1.55 }}>
                 {q.reports.length > 1 ? `${q.reports.length} residents reported the same ${cat.label.toLowerCase()} at ${q.address} between ${dayTime(reps[reps.length - 1].at)} and ${dayTime(reps[0].at)}. ` : `One resident reported a ${cat.label.toLowerCase()} at ${q.address}. `}
@@ -66,8 +74,8 @@ export default function RequestDetail({ id, role }) {
           <div className="card">
             <div className="cardhead"><h3>Reports</h3><span className="sub">{reps.length} merged into this request</span></div>
             <div style={{ padding: 14, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-              {q.afterPhoto && <Photo src={EXTRA.crew.src} c={q.category} label="After · crew photo" />}
-              {reps.slice(0, q.afterPhoto ? 3 : 4).map((r, i) => <Photo key={r.id} c={q.category} seed={i} label={i === 0 ? 'Before' : undefined} />)}
+              {reps.slice(0, q.afterPhoto ? 3 : 4).map((r, i) => <Photo key={r.id} c={q.category} seed={i} label={i === 0 ? 'Before · resident photo' : undefined} />)}
+              {q.afterPhoto && <Photo src={(EXTRA.fix?.[q.category] || EXTRA.crew).src} c={q.category} label="After · crew photo" />}
             </div>
             <table className="table">
               <tbody>
@@ -103,8 +111,8 @@ export default function RequestDetail({ id, role }) {
             <div style={{ marginTop: 14 }}>
               {[...p.factors].sort((a, b) => b.contrib - a.contrib).slice(0, 3).map(f => (
                 <div key={f.key} className="row small" style={{ padding: '5px 0', gap: 10 }}>
-                  <span style={{ width: 118, color: 'var(--ink-2)' }}>{f.label}</span>
-                  <span style={{ flex: 1, height: 6, borderRadius: 9, background: 'var(--line-2)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${f.value}%`, background: 'var(--agent)' }} /></span>
+                  <span style={{ width: 118, color: 'var(--tx2)' }}>{f.label}</span>
+                  <span style={{ flex: 1, height: 6, borderRadius: 9, background: 'rgba(210,255,230,.08)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${f.value}%`, background: 'var(--mint)' }} /></span>
                   <span className="mono" style={{ width: 26, textAlign: 'right', fontWeight: 650 }}>+{f.contrib.toFixed(0)}</span>
                 </div>
               ))}
@@ -134,7 +142,7 @@ export default function RequestDetail({ id, role }) {
 
           <div className="card pad">
             <div className="row" style={{ marginBottom: 10 }}><AgentMark size="sm" /><h3 style={{ fontSize: 14.5 }}>Draft update to residents</h3></div>
-            <p className="small" style={{ background: 'var(--bg)', padding: 12, borderRadius: 10, lineHeight: 1.5 }}>{draft}</p>
+            <p className="small" style={{ background: 'var(--s1)', border: '1px solid var(--line)', padding: 12, borderRadius: 10, lineHeight: 1.5 }}>{draft}</p>
             <div className="row" style={{ marginTop: 10 }}>
               <span className="tiny muted">Goes to {q.reports.length} reporters{s.following.includes(q.id) ? ' and followers' : ''}</span><span className="spacer" />
               <button className="btn sm" onClick={() => setEdit(draft)}><Pencil size={13} />Edit and send</button>
@@ -154,8 +162,8 @@ export default function RequestDetail({ id, role }) {
         <Modal onClose={() => setFix(false)}>
           <ModalHead title={`Close out ${q.id}`} sub="The after photo and note go to every resident who reported or follows this." onClose={() => setFix(false)} />
           <div className="mb col" style={{ gap: 12 }}>
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}><Photo c={q.category} label="Before" /><Photo src={EXTRA.crew.src} c={q.category} label="After · from crew app" /></div>
-            <div className="field"><label>What the crew did</label><input className="input" defaultValue="Cut out the damaged area, filled and compacted hot asphalt." id="fixnote" /></div>
+            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}><Photo c={q.category} label="Before" /><Photo src={(EXTRA.fix?.[q.category] || EXTRA.crew).src} c={q.category} label="After · from crew app" /></div>
+            <div className="field"><label>What the crew did</label><input className="input" defaultValue={FIXNOTE[q.category] || 'Repaired and inspected on site.'} id="fixnote" /></div>
           </div>
           <div className="mf"><button className="btn" onClick={() => setFix(false)}>Cancel</button><button className="btn primary" onClick={() => { resolve(q.id, actor, document.getElementById('fixnote').value); setFix(false) }}><CheckCircle2 size={14} />Mark fixed and ask residents</button></div>
         </Modal>
@@ -197,7 +205,7 @@ function ScheduleModal({ q, s, onClose, actor }) {
         <div className="field"><label>Crew</label>
           <div className="col" style={{ gap: 6 }}>
             {crews.map(c => (
-              <label key={c.id} className="row card" style={{ padding: '10px 12px', cursor: 'pointer', borderColor: crew === c.id ? 'var(--green-2)' : undefined }}>
+              <label key={c.id} className="row card" style={{ padding: '10px 12px', cursor: 'pointer', borderColor: crew === c.id ? 'var(--mint)' : undefined }}>
                 <input type="radio" checked={crew === c.id} onChange={() => setCrew(c.id)} /><b className="small">{c.name}</b><span className="tiny muted">{c.lead}</span><span className="spacer" /><span className={`pill ${c.status === 'available' ? 'ok' : 'warn'}`}>{c.status === 'available' ? 'Free' : `On ${c.on || 'another job'}`}</span>
               </label>
             ))}

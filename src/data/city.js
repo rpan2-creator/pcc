@@ -81,25 +81,46 @@ export const PARKS = [
   { name: 'Southport Commons', pts: '880,520 980,520 980,560 880,560' },
 ]
 
+export const DOMAINS = {
+  streets: { label: 'Streets & sidewalks', color: '#F59E66' },
+  traffic: { label: 'Traffic & lighting', color: '#FBBF24' },
+  water: { label: 'Water & drainage', color: '#5AB4F5' },
+  clean: { label: 'Trash & cleanliness', color: '#A3A87A' },
+  parks: { label: 'Parks & trees', color: '#5FD39B' },
+  housing: { label: 'Buildings & neighborhood', color: '#C59AF0' },
+  winter: { label: 'Snow & ice', color: '#9CC9F5' },
+}
+
+// target = days the city commits to (shown to residents as the service target)
 export const CATEGORIES = {
-  pothole: { label: 'Pothole', dept: 'streets', risk: 62, fix: 1.0, target: 5, color: '#D4553A' },
-  snow: { label: 'Unplowed street', dept: 'streets', risk: 84, fix: 0.3, target: 1, color: '#3E7CB1' },
-  trash: { label: 'Missed trash pickup', dept: 'streets', risk: 24, fix: 0.5, target: 3, color: '#8A7B5C' },
-  streetlight: { label: 'Streetlight out', dept: 'transport', risk: 52, fix: 1.0, target: 7, color: '#E2A33B' },
-  signal: { label: 'Traffic signal out', dept: 'transport', risk: 95, fix: 0.3, target: 1, color: '#C2410C' },
-  tree: { label: 'Fallen tree', dept: 'parks', risk: 70, fix: 1.0, target: 3, color: '#3F7D4E' },
-  drain: { label: 'Blocked storm drain', dept: 'water', risk: 58, fix: 1.0, target: 4, color: '#2C8C99' },
-  leak: { label: 'Water main leak', dept: 'water', risk: 90, fix: 0.5, target: 1, color: '#1F6E8C' },
-  sidewalk: { label: 'Sidewalk damage', dept: 'publicworks', risk: 44, fix: 2.0, target: 14, color: '#7C6A9A' },
-  graffiti: { label: 'Graffiti', dept: 'publicworks', risk: 14, fix: 1.0, target: 10, color: '#B5577E' },
+  pothole: { label: 'Pothole', domain: 'streets', dept: 'publicworks', risk: 62, fix: 1.0, target: 5, color: '#F2875A' },
+  sidewalk: { label: 'Broken sidewalk', domain: 'streets', dept: 'publicworks', risk: 44, fix: 2.0, target: 21, color: '#D9925F' },
+  sign: { label: 'Damaged street sign', domain: 'streets', dept: 'transport', risk: 58, fix: 0.5, target: 3, color: '#E3A35B' },
+  signal: { label: 'Traffic signal out', domain: 'traffic', dept: 'transport', risk: 95, fix: 0.3, target: 1, color: '#F25F4C' },
+  streetlight: { label: 'Streetlight out', domain: 'traffic', dept: 'transport', risk: 52, fix: 1.0, target: 7, color: '#F1B83C' },
+  vehicle: { label: 'Abandoned vehicle', domain: 'traffic', dept: 'transport', risk: 22, fix: 1.0, target: 10, color: '#C9A24A' },
+  leak: { label: 'Water main leak', domain: 'water', dept: 'water', risk: 90, fix: 0.5, target: 1, color: '#3B9BE8' },
+  flood: { label: 'Flooding or blocked drain', domain: 'water', dept: 'water', risk: 64, fix: 1.0, target: 2, color: '#4FB0D8' },
+  sewer: { label: 'Sewer backup or odor', domain: 'water', dept: 'water', risk: 70, fix: 0.5, target: 1, color: '#3E86B8' },
+  trash: { label: 'Missed trash pickup', domain: 'clean', dept: 'sanitation', risk: 24, fix: 0.5, target: 2, color: '#9CA36E' },
+  dumping: { label: 'Illegal dumping', domain: 'clean', dept: 'sanitation', risk: 36, fix: 1.0, target: 5, color: '#8C9562' },
+  graffiti: { label: 'Graffiti', domain: 'clean', dept: 'sanitation', risk: 14, fix: 1.0, target: 7, color: '#C77DA8' },
+  tree: { label: 'Fallen tree or branch', domain: 'parks', dept: 'parks', risk: 70, fix: 1.0, target: 2, color: '#4CC38A' },
+  park: { label: 'Damaged park equipment', domain: 'parks', dept: 'parks', risk: 40, fix: 2.0, target: 10, color: '#62B87E' },
+  building: { label: 'Unsafe or vacant building', domain: 'housing', dept: 'code', risk: 66, fix: 2.0, target: 14, color: '#B08AE0' },
+  heat: { label: 'No heat in rental', domain: 'housing', dept: 'code', risk: 85, fix: 0.5, target: 1, color: '#D47AD0' },
+  noise: { label: 'Noise complaint', domain: 'housing', dept: 'code', risk: 18, fix: 0.3, target: 1, color: '#9B86D9' },
+  rodent: { label: 'Rodents', domain: 'housing', dept: 'code', risk: 42, fix: 1.0, target: 10, color: '#8E7AB8' },
+  snow: { label: 'Unplowed street', domain: 'winter', dept: 'publicworks', risk: 84, fix: 0.3, target: 1, color: '#7FB6EE' },
 }
 
 export const DEPARTMENTS = {
-  streets: { name: 'Streets & Sanitation', short: 'Streets', crews: 4 },
-  transport: { name: 'Transportation', short: 'Transport', crews: 2 },
+  publicworks: { name: 'Public Works', short: 'Public Works', crews: 4 },
+  transport: { name: 'Transportation', short: 'Transportation', crews: 2 },
+  water: { name: 'Water & Sewer', short: 'Water & Sewer', crews: 2 },
+  sanitation: { name: 'Sanitation', short: 'Sanitation', crews: 2 },
   parks: { name: 'Parks & Forestry', short: 'Parks', crews: 2 },
-  water: { name: 'Water', short: 'Water', crews: 2 },
-  publicworks: { name: 'Public Works', short: 'Public Works', crews: 2 },
+  code: { name: 'Code Enforcement', short: 'Code Enforcement', crews: 2 },
 }
 
 export function pointOnStreet(streetId, t) {

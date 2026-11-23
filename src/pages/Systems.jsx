@@ -16,22 +16,22 @@ const SYSTEMS = [
 
 export default function Systems() {
   const s = useStore()
-  const nav = [{ to: '/systems', label: 'Connected systems', icon: Plug, exact: true }]
+  const groups = [{ label: 'IT', items: [{ to: '/systems', label: 'Connected systems', icon: Plug, exact: true }] }]
   const log = s.feed.filter(f => f.tool).slice(0, 40)
   return (
-    <Shell role="systems" nav={nav} agent={false}>
-      <div className="page wide">
-        <div className="pagehead"><div><div className="eyebrow">Integrations</div><h1>PCC works on top of the city's existing systems</h1><p>Nothing is replaced. The agent reads from these systems, coordinates, and writes the result back where staff already work.</p></div></div>
+    <Shell role="systems" groups={groups} agent={false}>
+      <div className="page" style={{ maxWidth: 1400 }}>
+        <div className="pagehead"><div><div className="eyebrow"><Plug size={13} />Integrations</div><h1>PCC works on top of the city's existing systems</h1><p>Nothing is replaced. The agent reads from these systems, coordinates, and writes the result back where staff already work.</p></div></div>
         <div className="card pad" style={{ marginBottom: 16 }}>
           <div className="row" style={{ gap: 0, justifyContent: 'space-between', alignItems: 'stretch' }}>
             {['Residents', 'PCC agent', 'City systems', 'Departments'].map((x, i) => (
               <div key={x} className="row" style={{ flex: 1, gap: 0 }}>
-                <div className="card" style={{ flex: 1, padding: '14px 16px', textAlign: 'center', background: i === 1 ? 'var(--agent-soft)' : 'var(--paper-2)', borderColor: i === 1 ? '#CFDDEF' : undefined }}>
+                <div className="card" style={{ flex: 1, padding: '14px 16px', textAlign: 'center', background: i === 1 ? 'var(--mintbg)' : 'var(--s2)', borderColor: i === 1 ? 'rgba(126,240,193,.3)' : undefined }}>
                   {i === 1 && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}><AgentMark /></div>}
                   <b>{x}</b>
                   <div className="tiny muted" style={{ marginTop: 3 }}>{['report, upvote, follow', 'merge, route, prioritize, follow up', 'tickets, assets, fleet, messages', 'accept, schedule, fix'][i]}</div>
                 </div>
-                {i < 3 && <ArrowLeftRight size={18} style={{ margin: '0 10px', color: 'var(--ink-3)', alignSelf: 'center' }} />}
+                {i < 3 && <ArrowLeftRight size={18} style={{ margin: '0 10px', color: 'var(--tx3)', alignSelf: 'center' }} />}
               </div>
             ))}
           </div>
@@ -43,7 +43,7 @@ export default function Systems() {
               return (
                 <div key={x.id} className="card pad">
                   <div className="row" style={{ gap: 10, marginBottom: 10 }}>
-                    <span className="agentmark" style={{ background: 'var(--bg)', color: 'var(--ink-2)' }}><x.icon size={15} /></span>
+                    <span className="agentmark" style={{ background: 'var(--s3)', color: 'var(--tx2)' }}><x.icon size={15} /></span>
                     <div style={{ flex: 1 }}><b>{x.name}</b><div className="tiny muted">{x.vendor}</div></div>
                     <span className="live"><i />Connected</span>
                   </div>
@@ -60,7 +60,7 @@ export default function Systems() {
             <div className="cardhead"><h3>Live sync log</h3><span className="sub">agent calls to city systems</span></div>
             <div style={{ maxHeight: 640, overflowY: 'auto' }}>
               {log.map(f => (
-                <div key={f.id} className="row small" style={{ padding: '10px 16px', borderTop: '1px solid var(--line-2)', alignItems: 'flex-start', gap: 10 }}>
+                <div key={f.id} className="row small" style={{ padding: '10px 16px', borderTop: '1px solid var(--line)', alignItems: 'flex-start', gap: 10 }}>
                   <span className="muted mono" style={{ width: 62, flex: 'none' }}>{time(f.at)}</span>
                   <span style={{ flex: 1 }}><span className="toolchip" style={{ marginRight: 6 }}>{f.tool}</span>{f.text}</span>
                 </div>
