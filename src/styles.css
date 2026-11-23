@@ -48,7 +48,7 @@
   --pri-tx: #fff; --pri-edge: rgba(255,255,255,.28);
   --orb1: rgba(255,255,255,.95); --orb2: rgba(196,202,212,.65); --orb3: rgba(255,255,255,.8); --orb4: rgba(205,210,220,.6);
 }
-:root { --r: 18px; --font: 'Public Sans', system-ui, sans-serif; --ease: cubic-bezier(.2, .8, .2, 1); }
+:root { --r: 18px; --font: 'Public Sans Variable', 'Public Sans', system-ui, sans-serif; --ease: cubic-bezier(.2, .8, .2, 1); }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--tx); font-family: var(--font); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; font-feature-settings: 'tnum' 1; }

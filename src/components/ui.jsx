@@ -142,7 +142,7 @@ export function Num({ value, decimals = 0, duration = 900 }) {
     if (a === b) return
     let raf
     const tick = t => {
-      const k = Math.min(1, (t - start) / duration)
+      const k = Math.max(0, Math.min(1, (t - start) / duration))
       const e = 1 - Math.pow(1 - k, 3)
       setShown(a + (b - a) * e)
       if (k < 1) raf = requestAnimationFrame(tick); else from.current = b
