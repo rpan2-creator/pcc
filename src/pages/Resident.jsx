@@ -2,16 +2,17 @@ import { useState } from 'react'
 import { Map as MapIcon, PlusCircle, ListChecks, Snowflake, ThumbsUp, Camera, MapPin, ChevronLeft, Check, Sparkles, Bell, BellOff, Phone, Mail, Search, Clock3, ChevronRight } from 'lucide-react'
 import { TopBar } from '../components/Shell.jsx'
 import CityMap from '../components/CityMap.jsx'
-import { useStore, upvote, follow, submitReport, clearRun, etaOf, isOpen } from '../store.js'
+import { useStore, upvote, follow, submitReport, clearRun, etaOf, isOpen, confirmFix } from '../store.js'
+import { EXTRA } from '../data/photos.js'
 import { CATEGORIES, STREETS, districtName } from '../data/city.js'
-import { Photo, AgentMark, Cat } from '../components/ui.jsx'
+import { Photo, AgentMark, Cat, CatIcon } from '../components/ui.jsx'
 import { navigate, Link, usePath } from '../router.jsx'
 import { ago, time, day } from '../format.js'
 import { PRIYA_REPORT } from '../guide.js'
 
 const HOME = { x: 497, y: 430 }
-const STEPS = [['new', 'Received'], ['accepted', 'Assigned'], ['scheduled', 'Scheduled'], ['in_progress', 'In progress'], ['resolved', 'Fixed']]
-const STEP_IX = { review: 0, new: 0, accepted: 1, scheduled: 2, in_progress: 3, resolved: 4, merged: 0 }
+const STEPS = [['new', 'Received and sorted'], ['accepted', 'Accepted by the city'], ['scheduled', 'Crew scheduled'], ['in_progress', 'Crew working'], ['resolved', 'Fixed']]
+const STEP_IX = { review: 0, new: 0, accepted: 1, scheduled: 2, in_progress: 3, resolved: 4, closed: 5, merged: 0 }
 
 export default function Resident({ sub, id }) {
   const s = useStore()
@@ -120,11 +121,11 @@ function IssueRow({ q, d, s }) {
   const up = s.upvoted.includes(q.id)
   return (
     <div className="issuerow" onClick={() => navigate(`/resident/issue/${q.id}`)}>
-      <span className="catico" style={{ background: CATEGORIES[q.category].color }} />
+      <div style={{ position: 'relative', flex: 'none' }}><Photo c={q.category} seed={q.reports.length} style={{ width: 56, height: 56, aspectRatio: 'auto', borderRadius: 12 }} /><span style={{ position: 'absolute', right: -4, bottom: -4 }}><CatIcon c={q.category} size={22} radius={7} /></span></div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <b>{CATEGORIES[q.category].label}</b>
         <div className="tiny muted">{q.address} · {d < 1000 ? `${Math.round(d / 10) * 10} m` : `${(d / 1000).toFixed(1)} km`}</div>
-        <div className="tiny" style={{ marginTop: 3, color: 'var(--ink-2)', fontWeight: 600 }}>{STEPS[STEP_IX[q.status]][1]} · {etaOf(q, s).text}</div>
+        <div className="tiny" style={{ marginTop: 3, color: 'var(--ink-2)', fontWeight: 600 }}>{q.status === 'closed' ? 'Closed' : STEPS[Math.min(4, STEP_IX[q.status])][1]}{['resolved', 'closed'].includes(q.status) ? '' : ` · ${etaOf(q, s).text}`}</div>
       </div>
       <button className={`upbtn ${up ? 'on' : ''}`} onClick={e => { e.stopPropagation(); upvote(q.id) }} aria-pressed={up}><ThumbsUp size={15} />{q.upvotes}</button>
     </div>
@@ -214,18 +215,31 @@ function Issue({ s, id }) {
     <>
       <AppHeader title={real.id} back="/resident" />
       <div style={{ padding: '0 16px 100px' }}>
-        <Photo c={real.category} style={{ borderRadius: 14 }} />
+        {real.afterPhoto ? (
+          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}><Photo c={real.category} label="Before" style={{ borderRadius: 12 }} /><Photo src={EXTRA.crew.src} c={real.category} label="After" style={{ borderRadius: 12 }} /></div>
+        ) : <Photo c={real.category} style={{ borderRadius: 14 }} />}
         <h2 style={{ fontSize: 20, fontWeight: 750, marginTop: 14, letterSpacing: '-0.01em' }}>{CATEGORIES[real.category].label}</h2>
         <div className="small muted">{real.address} · {districtName(real.district)}</div>
         <div className="row" style={{ gap: 8, marginTop: 12 }}>
           <button className={`upbtn big ${up ? 'on' : ''}`} onClick={() => upvote(real.id)}><ThumbsUp size={16} />{up ? 'Upvoted' : 'Upvote'} · {real.upvotes}</button>
           <button className="upbtn big" onClick={() => follow(real.id)}>{fol ? <Bell size={16} /> : <BellOff size={16} />}{fol ? 'Following' : 'Follow'}</button>
         </div>
-        <div className="etacard">
+        {real.status === 'resolved' && (
+          <div className="confirmcard">
+            <b>The crew says this is fixed. Is it?</b>
+            <p>{real.fixNote}</p>
+            <div className="row" style={{ gap: 8, marginTop: 10 }}>
+              <button className="btn primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => confirmFix(real.id, true)}><Check size={15} />Yes, it's fixed</button>
+              <button className="btn" style={{ flex: 1, justifyContent: 'center' }} onClick={() => confirmFix(real.id, false)}>Still a problem</button>
+            </div>
+          </div>
+        )}
+        {real.status === 'closed' && <div className="confirmcard ok"><b>Closed. Thanks for confirming.</b><p>Fixed {((real.closedAt - real.createdAt) / 864e5).toFixed(1)} days after the first report.</p></div>}
+        {!['resolved', 'closed'].includes(real.status) && <div className="etacard">
           <div className="row" style={{ gap: 8 }}><Clock3 size={16} /><b>{real.status === 'resolved' ? 'Fixed' : eta.text}</b></div>
           <p>{eta.reason}</p>
           <p className="tiny" style={{ opacity: .75, marginTop: 6 }}>{real.reports.length} residents reported this · {real.upvotes} upvotes help the city decide what comes first</p>
-        </div>
+        </div>}
         <div className="stepper">
           {STEPS.map(([k, l], i) => (
             <div key={k} className={`st ${i < ix ? 'done' : i === ix ? 'cur' : ''}`}><span className="b">{i < ix ? <Check size={11} strokeWidth={3} /> : null}</span><span>{l}</span></div>

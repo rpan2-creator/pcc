@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { ArrowLeft, MapPin, Users, ThumbsUp, Clock3, Sparkles, Split, Hand, Send, Route as RouteIcon, CalendarCheck, Wrench, CheckCircle2, UserCheck, Info, Pencil } from 'lucide-react'
 import { useStore, priorityOf, etaOf, accept, schedule, start, resolve, reroute, unmerge, overridePriority, editMessageAndSend } from '../store.js'
+import { EXTRA } from '../data/photos.js'
 import { CATEGORIES, DEPARTMENTS, districtName } from '../data/city.js'
-import { Priority, Status, Cat, Conf, WhyModal, Photo, AgentMark, LEVEL, Modal, ModalHead } from '../components/ui.jsx'
+import { Priority, Status, Cat, Conf, WhyModal, Photo, AgentMark, LEVEL, Modal, ModalHead, Workflow, CatIcon } from '../components/ui.jsx'
 import CityMap from '../components/CityMap.jsx'
 import { Link } from '../router.jsx'
 import { ago, dayTime, time } from '../format.js'
@@ -14,6 +15,7 @@ export default function RequestDetail({ id, role }) {
   const [rr, setRR] = useState(false)
   const [sched, setSched] = useState(false)
   const [edit, setEdit] = useState(false)
+  const [fix, setFix] = useState(false)
   if (!q) return <div className="page"><div className="empty">Request {id} not found. It may have been merged.</div></div>
   const p = priorityOf(q, s)
   const eta = etaOf(q, s)
@@ -31,7 +33,7 @@ export default function RequestDetail({ id, role }) {
       <div className="pagehead" style={{ alignItems: 'flex-start' }}>
         <div>
           <div className="row" style={{ gap: 10, marginBottom: 6 }}><span className="id">{q.id}</span><Status s={q.status} />{escalated ? <span className="pill warn">Escalated to Dana</span> : nudged ? <span className="pill warn">Overdue · reminder sent</span> : null}{q.flags.includes('storm') && <span className="pill agent">Storm</span>}</div>
-          <h1>{cat.label} · {q.address}</h1>
+          <h1 className="row" style={{ gap: 12 }}><CatIcon c={q.category} size={36} />{cat.label} · {q.address}</h1>
           <p className="row" style={{ gap: 14, marginTop: 8 }}>
             <span className="row" style={{ gap: 5 }}><MapPin size={14} />{districtName(q.district)}{q.nearby ? ` · near ${q.nearby}` : ''}</span>
             <span className="row" style={{ gap: 5 }}><Users size={14} />{q.reports.length} reports</span>
@@ -41,6 +43,7 @@ export default function RequestDetail({ id, role }) {
         </div>
       </div>
 
+      <div className="card" style={{ padding: '18px 10px 14px', marginBottom: 16 }}><Workflow q={q} /></div>
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.55fr) minmax(300px, 1fr)', alignItems: 'start' }}>
         <div className="grid">
           <div className="card">
@@ -63,7 +66,8 @@ export default function RequestDetail({ id, role }) {
           <div className="card">
             <div className="cardhead"><h3>Reports</h3><span className="sub">{reps.length} merged into this request</span></div>
             <div style={{ padding: 14, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-              {reps.slice(0, 4).map((r, i) => <Photo key={r.id} c={q.category} seed={i} />)}
+              {q.afterPhoto && <Photo src={EXTRA.crew.src} c={q.category} label="After · crew photo" />}
+              {reps.slice(0, q.afterPhoto ? 3 : 4).map((r, i) => <Photo key={r.id} c={q.category} seed={i} label={i === 0 ? 'Before' : undefined} />)}
             </div>
             <table className="table">
               <tbody>
@@ -113,14 +117,16 @@ export default function RequestDetail({ id, role }) {
             </div>
           </div>
 
-          {role !== 'council' && q.status !== 'resolved' && q.status !== 'merged' && (
+          {q.status === 'resolved' && <div className="callout ok"><CheckCircle2 size={16} style={{ flex: 'none', marginTop: 1 }} /><span>Fixed. The agent sent the after photo to {q.reports.length} residents and is waiting for one to confirm before closing.</span></div>}
+          {q.status === 'closed' && <div className="callout ok"><CheckCircle2 size={16} style={{ flex: 'none', marginTop: 1 }} /><span>Closed. A resident confirmed the fix.</span></div>}
+          {role !== 'council' && !['resolved', 'closed', 'merged'].includes(q.status) && (
             <div className="card pad">
               <h3 style={{ fontSize: 14.5, marginBottom: 12 }}>{role === 'dept' ? 'Your next step' : 'Actions'}</h3>
               <div className="col" style={{ gap: 8 }}>
                 {q.status === 'new' && <button className="btn primary" onClick={() => accept(q.id, actor)}><UserCheck size={15} />Accept for {DEPARTMENTS[q.dept].short}</button>}
                 {['new', 'accepted'].includes(q.status) && <button className="btn" onClick={() => setSched(true)}><CalendarCheck size={15} />Schedule a crew</button>}
-                {q.status === 'scheduled' && <button className="btn primary" onClick={() => start(q.id, actor)}><Wrench size={15} />Crew is on site</button>}
-                {['scheduled', 'in_progress'].includes(q.status) && <button className={`btn ${q.status === 'in_progress' ? 'primary' : ''}`} onClick={() => resolve(q.id, actor)}><CheckCircle2 size={15} />Mark fixed</button>}
+                {q.status === 'scheduled' && <button className="btn primary" onClick={() => start(q.id, actor)}><Wrench size={15} />Crew checked in on site</button>}
+                {['scheduled', 'in_progress'].includes(q.status) && <button className={`btn ${q.status === 'in_progress' ? 'primary' : ''}`} onClick={() => setFix(true)}><CheckCircle2 size={15} />Mark fixed with after photo</button>}
                 <button className="btn" onClick={() => setRR(true)}><RouteIcon size={15} />Reroute to another department</button>
               </div>
             </div>
@@ -144,6 +150,16 @@ export default function RequestDetail({ id, role }) {
       {why && <WhyModal q={q} p={p} onClose={() => setWhy(false)} />}
       {rr && <RerouteModal q={q} onClose={() => setRR(false)} actor={actor} />}
       {sched && <ScheduleModal q={q} s={s} onClose={() => setSched(false)} actor={actor} />}
+      {fix && (
+        <Modal onClose={() => setFix(false)}>
+          <ModalHead title={`Close out ${q.id}`} sub="The after photo and note go to every resident who reported or follows this." onClose={() => setFix(false)} />
+          <div className="mb col" style={{ gap: 12 }}>
+            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}><Photo c={q.category} label="Before" /><Photo src={EXTRA.crew.src} c={q.category} label="After · from crew app" /></div>
+            <div className="field"><label>What the crew did</label><input className="input" defaultValue="Cut out the damaged area, filled and compacted hot asphalt." id="fixnote" /></div>
+          </div>
+          <div className="mf"><button className="btn" onClick={() => setFix(false)}>Cancel</button><button className="btn primary" onClick={() => { resolve(q.id, actor, document.getElementById('fixnote').value); setFix(false) }}><CheckCircle2 size={14} />Mark fixed and ask residents</button></div>
+        </Modal>
+      )}
       {edit !== false && (
         <Modal onClose={() => setEdit(false)}>
           <ModalHead icon={<AgentMark />} title="Edit the update before it goes out" sub="The agent drafted this. You can change anything." onClose={() => setEdit(false)} />

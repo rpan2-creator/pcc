@@ -310,17 +310,60 @@ export function start(id, actor = 'Marcus Lee') {
     notifyResidents(s, q, `A crew is working on ${id} (${q.address}) now.`)
   })
 }
-export function resolve(id, actor = 'Marcus Lee') {
+export function resolve(id, actor = 'Marcus Lee', note = '') {
   update(s => {
     const q = req(s, id); const before = snap(s, [id])
-    q.status = 'resolved'; q.resolvedAt = s.now
+    q.status = 'resolved'; q.resolvedAt = s.now; q.afterPhoto = true; q.fixNote = note || 'Cut out the damaged area, filled and compacted hot asphalt.'
     const crew = s.crews.find(c => c.on === id); if (crew) { crew.status = 'available'; delete crew.on }
-    tl(q, s.now, 'Marked fixed', actor)
-    log(s, { actor, kind: 'resolve', text: `${actor} closed ${id}`, why: 'Work complete.', reqId: id, before })
-    const n = notifyResidents(s, q, `${id} at ${q.address} is fixed. Thanks for reporting it.`)
-    log(s, { kind: 'notify', text: `Told ${n + q.reports.length - 1} residents that ${id} is fixed`, why: 'Closing the loop with everyone who reported or followed it.', reqId: id, tool: 'SMS / email' })
+    tl(q, s.now, `Fixed, with an after photo: ${q.fixNote}`, actor)
+    log(s, { actor, kind: 'resolve', text: `${actor} marked ${id} fixed with an after photo`, why: q.fixNote, reqId: id, before })
+    const n = notifyResidents(s, q, `${id} at ${q.address} has been fixed. Here is the crew's photo. Does it look right to you? Tap "Yes, it's fixed" or "Still a problem".`)
+    log(s, { kind: 'notify', text: `Sent the after photo to ${n + q.reports.length - 1} residents and asked them to confirm`, why: 'A request is only closed when a resident confirms, or after 3 days with no reply.', reqId: id, tool: 'SMS / email' })
   })
 }
+export function crewFix(id, actor = 'Streets crew 2') {
+  update(s => {
+    const q = req(s, id)
+    if (q.scheduledFor && q.scheduledFor > s.now) s.now = q.scheduledFor
+    s.now += 40 * 60e3
+    q.status = 'in_progress'
+    tl(q, s.now, `${actor} checked in on site`, actor)
+    log(s, { actor, kind: 'start', text: `${actor} checked in at ${q.address}`, why: 'GPS check-in from the crew app.', reqId: id, tool: 'Work order system' })
+    notifyResidents(s, q, `A crew is working on ${id} (${q.address}) right now.`)
+    s.now += 55 * 60e3
+  })
+  resolve(id, actor)
+}
+export function confirmFix(id, ok) {
+  update(s => {
+    const q = req(s, id); const before = snap(s, [id])
+    if (ok) {
+      q.status = 'closed'; q.closedAt = s.now
+      tl(q, s.now, 'Priya Shah confirmed it is fixed', 'Priya Shah')
+      log(s, { actor: 'Priya Shah', kind: 'confirm', text: `Priya Shah confirmed ${id} is fixed`, why: 'Resident confirmation from the app.', reqId: id, before })
+      log(s, { kind: 'resolve', text: `Closed ${id}: fixed and confirmed by a resident`, why: `Reported ${((q.closedAt - q.createdAt) / D).toFixed(1)} days ago; target was ${CATEGORIES[q.category].target} days.`, reqId: id, tool: 'Work order system' })
+      s.inbox.unshift({ id: nextId(s, 'M'), at: s.now, reqId: id, text: `Thanks for confirming, Priya. ${id} is closed.` })
+    } else {
+      q.status = 'accepted'; q.flags.push('reopened'); delete q.scheduledFor
+      tl(q, s.now, 'Priya Shah says it is still a problem', 'Priya Shah')
+      log(s, { actor: 'Priya Shah', kind: 'reopen', text: `Priya Shah reported ${id} is still a problem`, why: 'Resident feedback from the app.', reqId: id, before })
+      log(s, { kind: 'reopen', text: `Reopened ${id} and sent it back to ${DEPARTMENTS[q.dept].short} with the resident's note`, why: 'A resident disagreed with the fix, so the agent does not close it.', reqId: id, tool: 'Work order system' })
+      s.inbox.unshift({ id: nextId(s, 'M'), at: s.now, reqId: id, text: `Sorry about that. I reopened ${id} and sent it back to the crew. You will get a new time soon.` })
+    }
+  })
+}
+
+// One shared description of where a request is in its life.
+export const STAGES = [
+  { key: 'reported', label: 'Reported', who: 'Resident' },
+  { key: 'triaged', label: 'Sorted by agent', who: 'PCC agent' },
+  { key: 'accepted', label: 'Accepted by department', who: 'Department' },
+  { key: 'scheduled', label: 'Crew scheduled', who: 'Department' },
+  { key: 'onsite', label: 'Crew on site', who: 'Crew' },
+  { key: 'fixed', label: 'Fixed with photo', who: 'Crew' },
+  { key: 'confirmed', label: 'Confirmed by resident', who: 'Resident' },
+]
+export const STAGE_IX = { review: 1, new: 2, accepted: 3, scheduled: 4, in_progress: 5, resolved: 6, closed: 7, merged: 1 }
 export function reroute(id, dept, note, actor = 'Marcus Lee') {
   update(s => {
     const q = req(s, id); const before = snap(s, [id])

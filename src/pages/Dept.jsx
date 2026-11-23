@@ -4,7 +4,7 @@ import Shell from '../components/Shell.jsx'
 import CityMap from '../components/CityMap.jsx'
 import { useStore, deptQueue, etaOf, priorityOf, accept, schedule, triggerStorm, breakPlows, repairPlows } from '../store.js'
 import { CATEGORIES, DEPARTMENTS, districtName } from '../data/city.js'
-import { Priority, Cat, WhyModal, AgentMark, LEVEL } from '../components/ui.jsx'
+import { Priority, Cat, WhyModal, AgentMark, LEVEL, Photo, CatIcon } from '../components/ui.jsx'
 import { navigate, Link } from '../router.jsx'
 import { ago, time } from '../format.js'
 import RequestDetail from './RequestDetail.jsx'
@@ -69,8 +69,13 @@ function QCard({ r, p, s, onWhy, free }) {
   return (
     <div className="card" style={{ padding: 12, cursor: 'pointer', borderLeft: `3px solid ${p.level === 'high' ? 'var(--red)' : p.level === 'medium' ? 'var(--amber)' : 'var(--green-2)'}` }} onClick={() => navigate(`/dept/request/${r.id}`)}>
       <div className="row" style={{ marginBottom: 6 }}><span className="id">{r.id}</span><span className="spacer" />{r.status === 'in_progress' && <span className="pill st-in_progress">On site</span>}{r.flags.includes('nudged') && <span className="pill warn">Overdue</span>}</div>
-      <div className="row" style={{ fontWeight: 650, fontSize: 13.5, lineHeight: 1.3, gap: 7 }}><span className="catdot" style={{ background: CATEGORIES[r.category].color }} />{CATEGORIES[r.category].label}</div>
-      <div className="small muted" style={{ marginTop: 2 }}>{r.address} · {districtName(r.district)}</div>
+      <div className="row" style={{ gap: 10, alignItems: 'flex-start' }}>
+        <Photo c={r.category} seed={r.reports.length} style={{ width: 54, height: 54, aspectRatio: 'auto', borderRadius: 10, flex: 'none' }} />
+        <div style={{ minWidth: 0 }}>
+          <div className="row" style={{ fontWeight: 650, fontSize: 13.5, lineHeight: 1.3, gap: 6 }}><Cat c={r.category} label={false} />{CATEGORIES[r.category].label}</div>
+          <div className="small muted" style={{ marginTop: 2 }}>{r.address} · {districtName(r.district)}</div>
+        </div>
+      </div>
       <div className="row" style={{ marginTop: 10, gap: 10 }}>
         <Priority p={p} />
       </div>

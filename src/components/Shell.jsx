@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, Search, PanelRightClose, PanelRightOpen, Snowflake, CloudSnow, Clock3, RotateCcw, PlayCircle, Truck, FastForward, Wrench, FlaskConical, X, ArrowRight, Sparkles, Check } from 'lucide-react'
+import { Building2, Smartphone, ChevronDown, Search, PanelRightClose, PanelRightOpen, Snowflake, CloudSnow, Clock3, RotateCcw, PlayCircle, Truck, FastForward, Wrench, FlaskConical, X, ArrowRight, Sparkles, Check } from 'lucide-react'
 import { useStore, dismissToast, undo, reset, triggerStorm, breakPlows, advance, repairPlows, setGuided, isOpen } from '../store.js'
 import { navigate, Link, usePath } from '../router.jsx'
 import { ROLES, Avatar, AgentMark, FeedIcon } from './ui.jsx'
@@ -38,7 +38,7 @@ export function RoleSwitcher({ role }) {
       </button>
       {open && (
         <div className="rs-menu" role="menu">
-          <div className="h">Switch role. Everyone sees the same city data.</div>
+          <div className="h">City staff and residents share the same live data.</div>
           {Object.values(ROLES).map((x, i) => (
             <button key={x.key} className={`rs-item ${x.key === role ? 'on' : ''}`} onClick={() => { navigate(x.home); setOpen(false) }} role="menuitem">
               <Avatar role={x.key} size={34} />
@@ -52,26 +52,24 @@ export function RoleSwitcher({ role }) {
   )
 }
 
+export function PortalSwitch({ role }) {
+  const staff = role !== 'resident'
+  return (
+    <nav className="portal" aria-label="Switch portal">
+      <Link to={staff ? location.pathname : '/ops'} className={staff ? 'on' : ''}><Building2 size={17} />City staff console</Link>
+      <Link to="/resident" className={!staff ? 'on res' : ''}><Smartphone size={17} />Resident app</Link>
+    </nav>
+  )
+}
+
 export function TopBar({ role }) {
   const now = useStore(s => s.now)
   const storm = useStore(s => s.storm)
-  const requests = useStore(s => s.requests)
-  const [qy, setQy] = useState('')
-  const hits = qy.length > 1 ? requests.filter(q => (q.id + ' ' + q.address).toLowerCase().includes(qy.toLowerCase())).slice(0, 6) : []
   return (
     <header className="topbar">
       <Link to="/" className="brand"><Logo /><span>PCC<small>Public Complaint Coordinator</small></span><span className="city">City of Riverton</span></Link>
-      {role !== 'resident' && (
-        <div className="search" style={{ position: 'relative' }}>
-          <Search size={15} />
-          <input placeholder="Search requests, streets or IDs" value={qy} onChange={e => setQy(e.target.value)} />
-          {hits.length > 0 && (
-            <div className="rs-menu" style={{ left: 0, right: 'auto', top: 42, width: '100%' }}>
-              {hits.map(q => <button key={q.id} className="rs-item" style={{ gridTemplateColumns: '1fr' }} onClick={() => { setQy(''); navigate(`/${role === 'dept' ? 'dept/request' : 'ops/requests'}/${q.id}`) }}><span><b>{q.id} · {q.address}</b><span>{q.category} · {q.status}</span></span></button>)}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="spacer" />
+      <PortalSwitch role={role} />
       <div className="spacer" />
       {storm && <span className="pill agent" style={{ height: 26 }}><CloudSnow size={13} /> Snow emergency</span>}
       <span className="clock"><Clock3 size={14} />{day(now)} · {time(now)}</span>
@@ -96,7 +94,7 @@ export function SideNav({ role, items }) {
           </Link>
         )
       })}
-      <div className="foot">Simulated agent · demo data for the fictional City of Riverton.</div>
+      <div className="foot">Simulated agent · demo data for the fictional City of Riverton · <Link to="/credits" style={{ textDecoration: 'underline' }}>Photo credits</Link></div>
     </nav>
   )
 }
@@ -210,7 +208,7 @@ export function DemoControls() {
     window.addEventListener('mousedown', f); return () => window.removeEventListener('mousedown', f)
   }, [])
   const items = [
-    { icon: PlayCircle, label: 'Play the guided demo', sub: '11 steps across every role', fn: () => { setGuided(0); navigate(GUIDE[0].path) } },
+    { icon: PlayCircle, label: 'Play the guided demo', sub: '12 steps across both portals', fn: () => { setGuided(0); navigate(GUIDE[0].path) } },
     { icon: CloudSnow, label: 'Start a snowstorm', sub: storm ? 'Storm already active' : 'Residents report unplowed streets', fn: () => { triggerStorm(); navigate('/dept/snow') }, off: !!storm },
     { icon: Truck, label: 'Break 2 plows', sub: storm ? 'Agent proposes a new route plan' : 'Start a snowstorm first', fn: () => { breakPlows(2); navigate('/ops/proposals') }, off: !storm || broken },
     { icon: Wrench, label: 'Repair all plows', sub: 'Fleet back to 8', fn: repairPlows, off: !broken },
@@ -246,6 +244,7 @@ export function Guided() {
     <div className="guided" role="dialog" aria-label="Guided demo">
       <span className="n">{g + 1}</span>
       <div>
+        <span className="gwho">{st.who}</span>
         <b>{st.title}</b>
         <p>{st.text}</p>
         <div className="dots">{GUIDE.map((_, i) => <i key={i} className={i <= g ? 'on' : ''} />)}</div>

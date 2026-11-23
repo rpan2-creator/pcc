@@ -5,6 +5,7 @@ import Dept from './pages/Dept.jsx'
 import Resident from './pages/Resident.jsx'
 import Council from './pages/Council.jsx'
 import Systems from './pages/Systems.jsx'
+import Credits from './pages/Credits.jsx'
 import { Toasts, DemoControls, Guided } from './components/Shell.jsx'
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
   else if (area === 'resident') page = <Resident sub={sub} id={id} />
   else if (area === 'council') page = <Council />
   else if (area === 'systems') page = <Systems />
+  else if (area === 'credits') page = <Credits />
   else page = <Landing />
   return <>{page}<Toasts /><Guided /><DemoControls /></>
 }

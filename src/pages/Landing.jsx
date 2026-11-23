@@ -1,4 +1,5 @@
-import { PlayCircle, ArrowRight, GitMerge, ListOrdered, BellRing, ShieldCheck, Sparkles } from 'lucide-react'
+import { PlayCircle, ArrowRight, GitMerge, ListOrdered, BellRing, ShieldCheck, Sparkles, Building2, Smartphone, Camera, Bot, UserCheck, CalendarCheck, HardHat, BadgeCheck, CheckCircle2 } from 'lucide-react'
+import { EXTRA, PHOTOS } from '../data/photos.js'
 import { Logo } from '../components/Shell.jsx'
 import { ROLES, Avatar } from '../components/ui.jsx'
 import { Link, navigate } from '../router.jsx'
@@ -37,20 +38,44 @@ export default function Landing() {
           </div>
           <p className="tiny muted" style={{ marginTop: 14 }}>Group 1 · Surabhi, Adi, Lavanya Munjal, Zareen Tasnim, Richard</p>
         </div>
-        <div className="mergeart" aria-hidden="true">
-          {REPORTS.map((r, i) => (
-            <div key={i} className="rcard" style={{ '--i': i, '--r': `${(i % 2 ? 1 : -1) * (2 + i)}deg`, '--x': `${(i % 3) * 26 - 26}px`, '--y': `${i * 64}px` }}>
-              <span className="catdot" style={{ background: '#D4553A' }} />
-              <div><b>{r[0]}</b><span>{r[1]}</span></div>
+        <div className="portals">
+          <Link to="/ops" className="portalcard staff">
+            <div className="pc-img"><img src={EXTRA.crew.src} alt="City road crew repairing a pothole" referrerPolicy="no-referrer" /></div>
+            <div className="pc-body">
+              <span className="pc-ic"><Building2 size={22} /></span>
+              <div><b>City staff console</b><span>Coordination manager, department managers, council and connected systems</span></div>
+              <ArrowRight size={20} className="pc-go" />
+            </div>
+          </Link>
+          <Link to="/resident" className="portalcard res">
+            <div className="pc-img"><img src={PHOTOS.pothole[0].src} alt="Pothole on a city street" referrerPolicy="no-referrer" /></div>
+            <div className="pc-body">
+              <span className="pc-ic"><Smartphone size={22} /></span>
+              <div><b>Resident app</b><span>Report a problem, upvote what is already reported and follow it to the fix</span></div>
+              <ArrowRight size={20} className="pc-go" />
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      <section className="lsec">
+        <h2>How one complaint moves through PCC</h2>
+        <p className="muted">The agent does the sorting and follow-up. People make the calls that matter.</p>
+        <div className="flow">
+          {[
+            [Camera, 'Resident reports', 'Photo, place, a few words. App, web, 311 call or mail.', 'res'],
+            [Bot, 'Agent sorts it', 'Classifies, merges duplicates, routes, sets priority, replies with a time.', 'agent'],
+            [UserCheck, 'Department accepts', 'Manager sees why it ranks where it does. Accepts or reroutes.', 'staff'],
+            [CalendarCheck, 'Crew scheduled', 'Residents get the date automatically.', 'staff'],
+            [HardHat, 'Crew fixes it', 'Checks in on site, closes out with an after photo.', 'staff'],
+            [BadgeCheck, 'Resident confirms', 'Closed only when a resident agrees it is fixed.', 'res'],
+          ].map(([I, t, d, k], i) => (
+            <div key={t} className={`flowst ${k}`}>
+              <span className="fi"><I size={20} /></span>
+              <span className="fn">{i + 1}</span>
+              <b>{t}</b><p>{d}</p>
             </div>
           ))}
-          <div className="ticket">
-            <div className="row" style={{ gap: 8 }}><span className="id" style={{ color: 'rgba(255,255,255,.7)' }}>REQ-2041</span><span className="spacer" /><span className="pill high" style={{ background: '#fff' }}><span className="dot" />High</span></div>
-            <b>Pothole · 412 Elm St</b>
-            <div className="tk-row"><GitMerge size={14} />7 reports merged into one</div>
-            <div className="tk-row"><ListOrdered size={14} />School bus route · 23 upvotes</div>
-            <div className="tk-row"><BellRing size={14} />7 residents told: crew tomorrow</div>
-          </div>
         </div>
       </section>
 
@@ -84,7 +109,7 @@ export default function Landing() {
         <ShieldCheck size={22} />
         <div><b>AI handles coordination. People keep authority.</b><span>Below a confidence threshold the agent asks first. Big changes are proposals. Every action is logged with its reason and can be undone.</span></div>
       </section>
-      <footer className="lfoot">PCC prototype · the agent is simulated and all data belongs to the fictional City of Riverton.</footer>
+      <footer className="lfoot">PCC prototype · the agent is simulated and all data belongs to the fictional City of Riverton · <Link to="/credits" style={{ textDecoration: 'underline' }}>Photo credits</Link></footer>
     </div>
   )
 }
